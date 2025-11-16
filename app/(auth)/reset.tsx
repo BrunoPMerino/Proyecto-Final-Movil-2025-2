@@ -132,12 +132,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 24,
+    paddingTop: 40,
+    paddingBottom: 40,
+    justifyContent: 'center',
   },
   card: {
     backgroundColor: 'white',

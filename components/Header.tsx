@@ -1,17 +1,15 @@
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 const Header: React.FC = () => {
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <Ionicons name="leaf-outline" size={28} color="white" />
-      </View>
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>Comida</Text>
-        <Text style={styles.title}>Sabana</Text>
-      </View>
+      <Image 
+        source={require('../assets/images/logo/image 1.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+      <Text style={styles.title}>Comida{"\n"}Sabana</Text>
     </View>
   );
 };
@@ -20,25 +18,21 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 30,
+    paddingHorizontal: 24,
   },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    backgroundColor: '#001E60',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  textContainer: {
-    justifyContent: 'center',
+  logo: {
+    width: 60,
+    height: 60,
+    marginRight: 16,
   },
   title: {
-    fontSize: 20,
+    fontSize: 32,
     fontWeight: '700',
     color: '#001E60',
-    lineHeight: 24,
+    lineHeight: 28,
+    textAlign: 'left',
   },
 });
 

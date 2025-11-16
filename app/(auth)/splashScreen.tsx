@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
-import Logo from '../../components/Logo';
+import { Image, StyleSheet, View } from 'react-native';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -17,7 +16,11 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      <Logo size="large" color="white" />
+      <Image 
+        source={require('../../assets/images/logo/image 27.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
     </View>
   );
 }
@@ -25,9 +28,13 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#001E60',
+    backgroundColor: '#12326D',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  logo: {
+    width: 450,
+    height: 450,
   },
 });
 
