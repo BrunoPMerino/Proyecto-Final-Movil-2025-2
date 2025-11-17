@@ -72,17 +72,28 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       setError(null);
       const data = await getProducts(branchId);
 
-      const normalized = (data || []).map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        stock: item.stock,
-        image_url: item.image_url,
-        is_available: item.is_available,
-        category_id: item.category_id,
-        branch_id: item.branch_id ?? branchId,
-      }));
+      const normalized = (data || []).map((item: any) => {
+        // Si image_url ya es una URL completa, usarla directamente
+        // Si es solo un nombre de archivo, convertir a URL pública
+        const publicUrl = item.image_url
+          ? item.image_url.startsWith("http")
+            ? item.image_url
+            : getPublicUrl(item.image_url)
+          : null;
+
+        return {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          stock: item.stock,
+          image_url: item.image_url,
+          image_url_public: publicUrl,
+          is_available: item.is_available,
+          category_id: item.category_id,
+          branch_id: item.branch_id ?? branchId,
+        };
+      });
 
       setProducts(normalized);
     } catch (err: any) {
@@ -100,20 +111,43 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       setError(null);
       const data = await getAllProducts();
 
-      const normalized = (data || []).map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        stock: item.stock,
-        image_url: item.image_url,
-        image_url_public: item.image_url ? getPublicUrl(item.image_url) : null,
-        is_available: item.is_available,
-        category_id: item.category_id,
-        branch_id: item.branch_id,
-      }));
+      console.log("[DataContext] Productos cargados:", data?.length);
+
+      const normalized = (data || []).map((item: any) => {
+        // Si image_url ya es una URL completa, usarla directamente
+        // Si es solo un nombre de archivo, convertir a URL pública
+        const publicUrl = item.image_url
+          ? item.image_url.startsWith("http")
+            ? item.image_url
+            : getPublicUrl(item.image_url)
+          : null;
+
+        console.log(
+          `[DataContext] Producto: ${
+            item.name
+          }, URL final: ${publicUrl?.substring(0, 80)}...`
+        );
+
+        return {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          stock: item.stock,
+          image_url: item.image_url,
+          image_url_public: publicUrl,
+          is_available: item.is_available,
+          category_id: item.category_id,
+          branch_id: item.branch_id,
+        };
+      });
 
       setProducts(normalized);
+
+      // Cargar sucursales automáticamente
+      if (branches.length === 0) {
+        await loadBranches();
+      }
     } catch (err: any) {
       setError(err.message || "Error al cargar productos");
       console.error("Error loading all products:", err);
