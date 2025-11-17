@@ -1,5 +1,5 @@
 import { supabase } from "../utils/supabase";
-import { uploadProductImage, getPublicUrl, deleteImage } from "./storageApi";
+import { deleteImage, getPublicUrl, uploadProductImage } from "./storageApi";
 
 export const getProducts = async (branchId: string) => {
   const { data, error } = await supabase
