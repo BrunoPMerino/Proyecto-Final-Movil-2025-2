@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import runTests from '../../tests/testsupa';
 
 export default function SplashScreen() {
   const router = useRouter();
-
+  runTests(); // temporal
   useEffect(() => {
     // Simular carga inicial y navegar a login después de 2 segundos
     const timer = setTimeout(() => {

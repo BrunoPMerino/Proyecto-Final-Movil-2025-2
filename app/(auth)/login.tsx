@@ -1,6 +1,7 @@
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Button from '../../components/Button';
 import Header from '../../components/Header';
 import Input from '../../components/Input';
@@ -8,17 +9,46 @@ import Link from '../../components/Link';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   const handleLogin = async (): Promise<void> => {
+    // Limpiar error previo
+    setError('');
+
+    // Validación básica
+    if (!email.trim()) {
+      setError('Por favor ingresa tu correo electrónico');
+      return;
+    }
+
+    if (!password.trim()) {
+      setError('Por favor ingresa tu contraseña');
+      return;
+    }
+
     setLoading(true);
-    // Aquí implementarías tu lógica de login
-    setTimeout(() => {
+
+    try {
+      const { error: loginError } = await login(email.trim(), password);
+
+      if (loginError) {
+        setError(loginError);
+        Alert.alert('Error', loginError);
+      } else {
+        // Login exitoso - redirigir a la pantalla principal
+        router.replace('/(main)/home');
+      }
+    } catch (err: any) {
+      const errorMessage = 'Error inesperado. Por favor intenta de nuevo.';
+      setError(errorMessage);
+      Alert.alert('Error', errorMessage);
+    } finally {
       setLoading(false);
-      // router.push('/home'); // Navegar a home después del login
-    }, 1500);
+    }
   };
 
   return (
@@ -37,11 +67,20 @@ export default function LoginScreen() {
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Inicio de sesión</Text>
             
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+            
             <Input
               label="Correo electrónico"
               placeholder="correo@ejemplo.com"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                setError(''); // Limpiar error al escribir
+              }}
               keyboardType="email-address"
               autoCapitalize="none"
             />
@@ -50,7 +89,10 @@ export default function LoginScreen() {
               label="Contraseña"
               placeholder="••••••••"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                setError(''); // Limpiar error al escribir
+              }}
               secureTextEntry
             />
             
@@ -115,6 +157,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 20,
+    textAlign: 'center',
+  },
+  errorContainer: {
+    backgroundColor: '#fee',
+    borderColor: '#fcc',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#c33',
+    fontSize: 14,
     textAlign: 'center',
   },
 });

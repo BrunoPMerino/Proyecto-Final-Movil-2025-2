@@ -5,42 +5,48 @@ import Button from '../../components/Button';
 import Header from '../../components/Header';
 import Input from '../../components/Input';
 import Link from '../../components/Link';
+import { resetPassword } from '@/utils/auth';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [emailSent, setEmailSent] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   const handleResetPassword = async (): Promise<void> => {
+    // Limpiar error previo
+    setError('');
+
+    // Validación básica
     if (!email.trim()) {
+      setError('Por favor ingresa tu correo electrónico');
       Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
       return;
     }
 
     setLoading(true);
+
     try {
-      // Implementación con Supabase:
-      // 1. Importa: import { createClient } from '@supabase/supabase-js'
-      // 2. Crea el cliente: const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-      // 3. Envía el correo:
-      //    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      //      redirectTo: 'comidasabanaapp://reset-password' // Deep link de tu app
-      //    })
-      //    if (error) throw error
-      
-      // Simulación de envío (remover cuando implementes Supabase)
-      setTimeout(() => {
-        setLoading(false);
+      const { success, error: resetError } = await resetPassword(email.trim());
+
+      if (resetError) {
+        setError(resetError.message);
+        Alert.alert('Error', resetError.message);
+      } else if (success) {
+        // Siempre mostrar éxito por seguridad (no revelamos si el email existe)
         setEmailSent(true);
         Alert.alert(
           'Correo enviado',
-          'Se ha enviado un correo electrónico con las instrucciones para restablecer tu contraseña.'
+          'Si el correo electrónico está registrado, recibirás un enlace para restablecer tu contraseña.'
         );
-      }, 1500);
-    } catch (error) {
+      }
+    } catch (err: any) {
+      const errorMessage = 'Error inesperado. Por favor intenta de nuevo.';
+      setError(errorMessage);
+      Alert.alert('Error', errorMessage);
+    } finally {
       setLoading(false);
-      Alert.alert('Error', 'No se pudo enviar el correo. Por favor intenta de nuevo.');
     }
   };
 
@@ -97,11 +103,20 @@ export default function ResetPasswordScreen() {
               Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
             </Text>
             
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+            
             <Input
               label="Correo electrónico"
               placeholder="correo@ejemplo.com"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                setError(''); // Limpiar error al escribir
+              }}
               keyboardType="email-address"
               autoCapitalize="none"
             />
@@ -171,6 +186,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  errorContainer: {
+    backgroundColor: '#fee',
+    borderColor: '#fcc',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#c33',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
 
