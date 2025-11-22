@@ -13,7 +13,7 @@ export default function SplashScreen() {
     // Si ya está autenticado y cargó, ir a home
     if (!isLoading && isAuthenticated) {
       console.log("[SplashScreen] Usuario autenticado, yendo a home");
-      router.replace("/(main)/home");
+      router.replace("/screens/tabs/HomeCatalogoScreen");
       return;
     }
 

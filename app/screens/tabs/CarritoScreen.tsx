@@ -150,13 +150,13 @@ export default function CarritoScreen() {
           {
             text: "Ver historial",
             onPress: () => {
-              router.push("/(main)/historial");
+              router.push("/screens/tabs/HistorialScreen");
             },
           },
           {
             text: "Seguir comprando",
             onPress: () => {
-              router.push("/(main)/home");
+              router.push("/screens/tabs/HomeCatalogoScreen");
             },
           },
         ]
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingBottom: 24,
+    paddingBottom: 80,
     borderTopWidth: 1,
     borderTopColor: "#e0e0e0",
     gap: 12,

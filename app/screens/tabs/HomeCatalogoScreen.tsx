@@ -2,12 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import BranchProductsView from "../../../components/BranchProductsView";
 import FilterBar from "../../../components/FilterBar";
@@ -65,7 +65,7 @@ export default function HomeCatalogoScreen() {
 
   const handleProductPress = (product: any) => {
     router.push({
-      pathname: "/product-modal",
+      pathname: "/screens/modals/ProductDetailsScreen",
       params: {
         productId: product.id,
         productName: product.name,

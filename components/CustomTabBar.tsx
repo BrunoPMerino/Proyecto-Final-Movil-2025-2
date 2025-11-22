@@ -22,24 +22,28 @@ const TAB_CONFIG: Record<
     inactiveIcon: keyof typeof Ionicons.glyphMap;
   }
 > = {
-  home: { title: "Catálogo", activeIcon: "home", inactiveIcon: "home-outline" },
-  historial: {
+  HomeCatalogoScreen: {
+    title: "Catálogo",
+    activeIcon: "home",
+    inactiveIcon: "home-outline",
+  },
+  HistorialScreen: {
     title: "Historial",
     activeIcon: "receipt",
     inactiveIcon: "receipt-outline",
   },
-  carrito: {
+  CarritoScreen: {
     title: "Carrito",
     activeIcon: "cart",
     inactiveIcon: "cart-outline",
   },
-  mapa: { title: "Mapa", activeIcon: "map", inactiveIcon: "map-outline" },
-  chatbot: {
+  MapaScreen: { title: "Mapa", activeIcon: "map", inactiveIcon: "map-outline" },
+  ChatbotScreen: {
     title: "Chatbot",
     activeIcon: "chatbubble",
     inactiveIcon: "chatbubble-outline",
   },
-  perfil: {
+  PerfilScreen: {
     title: "Perfil",
     activeIcon: "person",
     inactiveIcon: "person-outline",
@@ -60,7 +64,7 @@ export default function CustomTabBar({
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
-          const config = TAB_CONFIG[route.name] ?? TAB_CONFIG.home;
+          const config = TAB_CONFIG[route.name] ?? TAB_CONFIG.HomeCatalogoScreen;
           const iconName = isFocused ? config.activeIcon : config.inactiveIcon;
           const tintColor = isFocused ? "#001E60" : "#9AA0B4";
 

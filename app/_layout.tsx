@@ -14,15 +14,6 @@ export default function RootLayout() {
             <OrderProvider>
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(main)" />
-                <Stack.Screen
-                  name="product-modal"
-                  options={{ presentation: "transparentModal" }}
-                />
-                <Stack.Screen
-                  name="qr-room"
-                  options={{ presentation: "modal" }}
-                />
               </Stack>
             </OrderProvider>
           </CartProvider>

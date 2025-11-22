@@ -1,36 +1,43 @@
 import CustomTabBar from "@/components/CustomTabBar";
 import { Tabs } from "expo-router";
-import React from "react";
 
 const TAB_CONFIG: Record<
   string,
   { title: string; activeIcon: any; inactiveIcon: any }
 > = {
-  home: { title: "Catálogo", activeIcon: "home", inactiveIcon: "home-outline" },
-  historial: {
+  HomeCatalogoScreen: {
+    title: "Catálogo",
+    activeIcon: "home",
+    inactiveIcon: "home-outline",
+  },
+  HistorialScreen: {
     title: "Historial",
     activeIcon: "receipt",
     inactiveIcon: "receipt-outline",
   },
-  carrito: {
+  CarritoScreen: {
     title: "Carrito",
     activeIcon: "cart",
     inactiveIcon: "cart-outline",
   },
-  mapa: { title: "Mapa", activeIcon: "map", inactiveIcon: "map-outline" },
-  chatbot: {
+  MapaScreen: {
+    title: "Mapa",
+    activeIcon: "map",
+    inactiveIcon: "map-outline",
+  },
+  ChatbotScreen: {
     title: "Chatbot",
     activeIcon: "chatbubble",
     inactiveIcon: "chatbubble-outline",
   },
-  perfil: {
+  PerfilScreen: {
     title: "Perfil",
     activeIcon: "person",
     inactiveIcon: "person-outline",
   },
 };
 
-export default function MainLayout() {
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{

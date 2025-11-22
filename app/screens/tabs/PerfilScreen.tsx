@@ -1,13 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { useRouter } from "expo-router";
 import Button from "../../../components/Button";
 import SafeAreaContainer from "../../../components/SafeAreaContainer";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -17,7 +17,7 @@ export default function PerfilScreen() {
   const { logout, user } = useAuth();
   
   const handleQRRoom = () => {
-    router.push("/qr-room");
+    router.push("/screens/QRRoomScreen");
   };
 
   const handleLogout = async () => {

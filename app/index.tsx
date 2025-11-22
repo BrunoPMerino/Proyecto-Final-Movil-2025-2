@@ -24,7 +24,7 @@ export default function Index() {
 
   if (isAuthenticated) {
     console.log("[Index] Usuario autenticado, yendo a home");
-    return <Redirect href={"/(main)/home" as Href} />;
+    return <Redirect href={"/screens/tabs/HomeCatalogoScreen" as Href} />;
   }
 
   console.log("[Index] Usuario no autenticado, yendo a login");
