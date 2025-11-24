@@ -2,17 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 import BranchProductsView from "../../../components/BranchProductsView";
 import FilterBar from "../../../components/FilterBar";
 import Header from "../../../components/Header";
-import ProductGrid from "../../../components/ProductGrid";
 import SafeAreaContainer from "../../../components/SafeAreaContainer";
 import SearchBar from "../../../components/SearchBar";
 import { useData } from "../../../contexts/DataContext";
@@ -23,7 +20,9 @@ export default function HomeCatalogoScreen() {
     useData();
   const [refreshing, setRefreshing] = React.useState(false);
   const [searchText, setSearchText] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "branches">("grid");
+  // mantenemos el estado por compatibilidad con FilterBar,
+  // pero la app siempre mostrará la vista por sucursales
+  const [viewMode, setViewMode] = useState<"grid" | "branches">("branches");
   const [activeFilter, setActiveFilter] = useState("todos");
 
   // Cargar productos y sucursales al montar
@@ -74,24 +73,33 @@ export default function HomeCatalogoScreen() {
   };
 
   return (
-    <SafeAreaContainer backgroundColor="#f5f5f5">
+    <SafeAreaContainer backgroundColor="#ffffff">
+      {/* Header azul con logo y título, como en el Figma */}
       <View style={styles.header}>
         <Header />
       </View>
 
-      <SearchBar
-        placeholder="Buscar productos..."
-        value={searchText}
-        onChangeText={setSearchText}
-      />
+      {/* Barra de búsqueda: opcional pero alineada al estilo limpio */}
+      <View style={styles.searchContainer}>
+        <SearchBar
+          placeholder="Buscar productos..."
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+      </View>
 
+      {/* Título "Filtros" como en el diseño */}
+      <Text style={styles.filterTitle}>Filtros</Text>
+
+      {/* Chips de filtro horizontales */}
       <FilterBar
         filters={filterOptions}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        showViewOptions={true}
+        // ocultamos las opciones de cambiar entre grid / lista
+        showViewOptions={false}
       />
 
       {error && (
@@ -111,21 +119,8 @@ export default function HomeCatalogoScreen() {
           <Ionicons name="basket-outline" size={64} color="#ccc" />
           <Text style={styles.emptyText}>No hay productos disponibles</Text>
         </View>
-      ) : viewMode === "grid" ? (
-        <ScrollView
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <ProductGrid
-            products={filteredProducts}
-            onProductPress={handleProductPress}
-            numColumns={2}
-          />
-        </ScrollView>
       ) : (
+        // Vista por sucursales, como en la pantalla de Figma
         <BranchProductsView
           products={filteredProducts}
           branches={branches}
@@ -142,9 +137,20 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
     backgroundColor: "white",
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    backgroundColor: "white",
+  },
+  filterTitle: {
+    paddingHorizontal: 16,
+    marginTop: 4,
+    marginBottom: 4,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#222222",
   },
   errorContainer: {
     backgroundColor: "#fee",

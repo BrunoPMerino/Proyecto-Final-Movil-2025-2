@@ -1,5 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,39 +16,88 @@ import {
   View,
 } from "react-native";
 import SafeAreaContainer from "../../../components/SafeAreaContainer";
+import { useData } from "../../../contexts/DataContext";
 import { useOrder } from "../../../contexts/OrderContext";
+
+// ---------- Tipos para la FlatList ----------
+
+type SectionItem = {
+  type: "section";
+  title: string;
+};
+
+type OrderListItem = {
+  type: "order";
+  data: any; // si tienes tipo Order, úsalo aquí
+  group: "inProgress" | "completed";
+};
+
+type ListItem = SectionItem | OrderListItem;
+
+// ---------- Helpers ----------
+
+// Nombre de sucursal: branch_id del pedido -> branches.id -> branches.name
+const getRestaurantName = (order: any, branches: any[]): string => {
+  const branch = branches?.find((b: any) => b.id === order.branch_id);
+
+  if (branch && typeof branch.name === "string" && branch.name.trim().length) {
+    return branch.name; // p.ej. "Sucursal Norte"
+  }
+
+  // Por si en algún momento incluyes el nombre directamente en el pedido
+  const fallback =
+    order.branch_name ||
+    order.sucursal ||
+    order.restaurant_name ||
+    order.place_name;
+
+  if (typeof fallback === "string" && fallback.trim().length) {
+    return fallback;
+  }
+
+  return "Sucursal";
+};
+
+// Nombre de producto desde la info del item
+const getProductName = (item: any): string => {
+  const candidates = [
+    item.product?.name,
+    item.product_name,
+    item.name,
+    item.title,
+    item.nombre_producto,
+  ];
+
+  const found = candidates.find(
+    (v) => typeof v === "string" && v.trim().length > 0
+  );
+
+  return (found as string) || "Producto";
+};
+
+// ---------- Card de cada pedido ----------
 
 interface OrderItemCardProps {
   order: any;
   onCancel: (orderId: string) => void;
   isLoading: boolean;
+  isCompleted?: boolean;
+  branches: any[];
 }
 
-const OrderItemCard = ({ order, onCancel, isLoading }: OrderItemCardProps) => {
-  const statusColors: { [key: string]: string } = {
-    pending: "#FFA500",
-    cooking: "#FF6B35",
-    ready: "#4CAF50",
-    completed: "#2196F3",
-    cancelled: "#999",
-  };
-
+const OrderItemCard = ({
+  order,
+  onCancel,
+  isLoading,
+  isCompleted = false,
+  branches,
+}: OrderItemCardProps) => {
   const statusLabels: { [key: string]: string } = {
     pending: "Pendiente",
-    cooking: "Preparando",
+    cooking: "Cooking",
     ready: "Listo",
     completed: "Entregado",
     cancelled: "Cancelado",
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("es-CO", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   const formatDeliveryTime = (dateString?: string) => {
@@ -53,85 +106,118 @@ const OrderItemCard = ({ order, onCancel, isLoading }: OrderItemCardProps) => {
     return date.toLocaleTimeString("es-CO", {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
+      hour12: false,
     });
   };
 
-  const canCancel = order.status === "pending" || order.status === "cooking";
+  const canCancel =
+    !isCompleted && (order.status === "pending" || order.status === "cooking");
 
+  const restaurantName = getRestaurantName(order, branches);
+
+  // ---------- Card de pedidos FINALIZADOS (gris, dos columnas) ----------
+  if (isCompleted) {
+    return (
+      <View style={[styles.orderCard, styles.orderCardCompleted]}>
+        <View style={styles.completedRow}>
+          <View style={styles.completedLeft}>
+            <Text style={styles.restaurantNameSmall}>{restaurantName}</Text>
+            <Text style={styles.completedText}>
+              Hora de entrega: {formatDeliveryTime(order.delivery_time)}
+            </Text>
+            <Text style={styles.completedText}>
+              Precio: ${order.total.toLocaleString()}
+            </Text>
+            <Text style={styles.completedText}>
+              Estado: {statusLabels[order.status] ?? order.status}
+            </Text>
+          </View>
+          <View style={styles.completedRight}>
+            <Text style={styles.productsChosenTitle}>Productos elegidos</Text>
+            {order.order_items?.map((item: any, index: number) => (
+              <Text key={index} style={styles.bulletTextSmall}>
+                • {getProductName(item)}
+              </Text>
+            ))}
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // ---------- Card de pedidos EN CURSO (blanco, borde, botón X) ----------
   return (
     <View style={styles.orderCard}>
-      {/* Encabezado: ID y estado */}
-      <View style={styles.cardHeader}>
-        <View style={styles.orderInfo}>
-          <Text style={styles.orderId}>Pedido #{order.id.slice(0, 8)}</Text>
-          <Text style={styles.orderDate}>{formatDate(order.created_at)}</Text>
-        </View>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: statusColors[order.status] },
-          ]}
-        >
-          <Text style={styles.statusText}>{statusLabels[order.status]}</Text>
-        </View>
-      </View>
+      {/* Encabezado: nombre restaurante + botón cancelar */}
+      <View style={styles.cardHeaderRow}>
+        <Text style={styles.restaurantName}>{restaurantName}</Text>
 
-      {/* Items */}
-      {order.order_items && order.order_items.length > 0 && (
-        <View style={styles.itemsList}>
-          {order.order_items.map((item: any, index: number) => (
-            <View key={index} style={styles.orderItem}>
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.product_name}</Text>
-                <Text style={styles.itemQty}>x{item.quantity}</Text>
-              </View>
-              <Text style={styles.itemPrice}>
-                ${(item.price_at_order * item.quantity).toLocaleString()}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Hora de entrega */}
-      <View style={styles.deliveryInfo}>
-        <Ionicons name="time-outline" size={16} color="#666" />
-        <Text style={styles.deliveryText}>
-          Entrega: {formatDeliveryTime(order.delivery_time)}
-        </Text>
-      </View>
-
-      {/* Footer: Total y botón cancelar */}
-      <View style={styles.cardFooter}>
-        <Text style={styles.totalText}>${order.total.toLocaleString()}</Text>
         {canCancel && (
           <TouchableOpacity
-            style={styles.cancelButton}
             onPress={() => onCancel(order.id)}
             disabled={isLoading}
+            style={styles.cancelContainer}
           >
-            {isLoading ? (
-              <ActivityIndicator size="small" color="#c33" />
-            ) : (
-              <>
-                <Ionicons name="close-circle-outline" size={16} color="#c33" />
-                <Text style={styles.cancelText}>Cancelar</Text>
-              </>
-            )}
+            <View style={styles.cancelSquare}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#000" />
+              ) : (
+                <Ionicons name="close" size={18} color="#000" />
+              )}
+            </View>
+            <Text style={styles.cancelLabel}>Cancelar</Text>
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Lista de productos en bullets */}
+      {order.order_items?.length > 0 && (
+        <View style={styles.itemsBlock}>
+          <Text style={styles.sectionLabel}>Pedido</Text>
+          <View style={styles.itemsBullets}>
+            {order.order_items.map((item: any, index: number) => (
+              <Text key={index} style={styles.bulletText}>
+                • {getProductName(item)}
+              </Text>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Información de precio, estado y hora de entrega */}
+      <Text style={styles.infoLine}>
+        <Text style={styles.infoLabel}>Precio: </Text>
+        <Text style={styles.infoValue}>
+          ${order.total.toLocaleString()}
+        </Text>
+      </Text>
+
+      <Text style={styles.infoLine}>
+        <Text style={styles.infoLabel}>Estado: </Text>
+        <Text style={styles.infoValue}>
+          {statusLabels[order.status] ?? order.status}
+        </Text>
+      </Text>
+
+      <Text style={styles.infoLine}>
+        <Text style={styles.infoLabel}>Hora de entrega: </Text>
+        <Text style={styles.infoValue}>
+          {formatDeliveryTime(order.delivery_time)}
+        </Text>
+      </Text>
     </View>
   );
 };
 
+// ---------- Pantalla principal ----------
+
 export default function HistorialScreen() {
+  const navigation = useNavigation<NavigationProp<any>>();
   const { orders, loading, getUserOrders, cancelOrder } = useOrder();
+  const { branches } = useData();
   const [refreshing, setRefreshing] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  // Cargar pedidos cuando la pantalla se enfoca
   useFocusEffect(
     useCallback(() => {
       getUserOrders();
@@ -147,7 +233,7 @@ export default function HistorialScreen() {
   const handleCancel = (orderId: string) => {
     Alert.alert("¿Cancelar pedido?", "Esta acción no se puede deshacer", [
       {
-        text: "Cancelar",
+        text: "Volver",
         style: "cancel",
       },
       {
@@ -189,9 +275,25 @@ export default function HistorialScreen() {
   );
 
   return (
-    <SafeAreaContainer backgroundColor="#f5f5f5">
+    <SafeAreaContainer backgroundColor="#ffffff">
+      {/* Header estilo Figma */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Historial de Pedidos</Text>
+        <TouchableOpacity
+          style={styles.headerIconButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back" size={22} color="#000" />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Historial de pedidos</Text>
+
+        <View style={styles.headerRight}>
+          <Ionicons
+            name="person-circle-outline"
+            size={26}
+            color="#001E60"
+          />
+        </View>
       </View>
 
       {loading && orders.length === 0 ? (
@@ -201,33 +303,67 @@ export default function HistorialScreen() {
       ) : orders.length === 0 ? (
         renderEmpty()
       ) : (
-        <FlatList
+        <FlatList<ListItem>
           data={[
-            { type: "section", title: "En Curso" },
-            ...inProgressOrders.map((o) => ({ type: "order", data: o })),
+            { type: "section", title: "En curso" },
+            ...inProgressOrders.map(
+              (o): OrderListItem => ({
+                type: "order",
+                data: o,
+                group: "inProgress",
+              })
+            ),
             ...(completedOrders.length > 0
-              ? [{ type: "section", title: "Finalizados" }]
+              ? ([{ type: "section", title: "Finalizados" }] as SectionItem[])
               : []),
-            ...completedOrders.map((o) => ({ type: "order", data: o })),
+            ...completedOrders.map(
+              (o): OrderListItem => ({
+                type: "order",
+                data: o,
+                group: "completed",
+              })
+            ),
           ]}
-          keyExtractor={(item, index) => {
-            if (item.type === "section") return `section-${item.title}`;
-            return (item as any).data.id;
-          }}
-          renderItem={({ item }: { item: any }) => {
+          keyExtractor={(item) =>
+            item.type === "section"
+              ? `section-${item.title}`
+              : (item as OrderListItem).data.id
+          }
+          renderItem={({ item }) => {
             if (item.type === "section") {
+              const isFirst = item.title === "En curso";
               return (
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>{item.title}</Text>
+                <View
+                  style={
+                    isFirst
+                      ? styles.sectionHeaderPrimary
+                      : styles.sectionHeaderSecondary
+                  }
+                >
+                  {!isFirst && <View style={styles.sectionDivider} />}
+                  <Text
+                    style={
+                      isFirst
+                        ? styles.sectionTitlePrimary
+                        : styles.sectionTitleSecondary
+                    }
+                  >
+                    {item.title}
+                  </Text>
                 </View>
               );
             }
+
+            const orderItem = item as OrderListItem;
+
             return (
               <View style={styles.orderWrapper}>
                 <OrderItemCard
-                  order={item.data}
+                  order={orderItem.data}
                   onCancel={handleCancel}
-                  isLoading={cancellingId === item.data.id}
+                  isLoading={cancellingId === orderItem.data.id}
+                  isCompleted={orderItem.group === "completed"}
+                  branches={branches}
                 />
               </View>
             );
@@ -247,18 +383,33 @@ export default function HistorialScreen() {
   );
 }
 
+// ---------- Estilos ----------
+
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     backgroundColor: "white",
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
+  headerIconButton: {
+    width: 32,
+    justifyContent: "center",
+    alignItems: "flex-start",
+  },
   headerTitle: {
-    fontSize: 20,
+    flex: 1,
+    textAlign: "center",
+    fontSize: 18,
     fontWeight: "700",
-    color: "#001E60",
+    color: "#000",
+  },
+  headerRight: {
+    width: 32,
+    alignItems: "flex-end",
   },
   loadingContainer: {
     flex: 1,
@@ -268,134 +419,143 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 12,
     paddingVertical: 12,
+    paddingBottom: 32,
   },
-  sectionHeader: {
+  sectionHeaderPrimary: {
     paddingHorizontal: 4,
-    paddingVertical: 12,
     marginTop: 8,
+    marginBottom: 8,
   },
-  sectionTitle: {
-    fontSize: 14,
+  sectionHeaderSecondary: {
+    paddingHorizontal: 4,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: "#e0e0e0",
+    marginBottom: 6,
+  },
+  sectionTitlePrimary: {
+    fontSize: 20,
     fontWeight: "700",
+    color: "#000",
+  },
+  sectionTitleSecondary: {
+    fontSize: 14,
+    fontWeight: "600",
     color: "#666",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
   orderWrapper: {
     marginBottom: 12,
   },
   orderCard: {
-    backgroundColor: "white",
-    borderRadius: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 6,
     padding: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: "#d4d4d4",
   },
-  cardHeader: {
+  orderCardCompleted: {
+    backgroundColor: "#f3f3f3",
+  },
+
+  // En curso
+  cardHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  orderInfo: {
-    flex: 1,
-  },
-  orderId: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#001E60",
-    marginBottom: 4,
-  },
-  orderDate: {
-    fontSize: 12,
-    color: "#999",
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "white",
-  },
-  itemsList: {
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  orderItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: 8,
   },
-  itemInfo: {
-    flex: 1,
+  restaurantName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#000",
   },
-  itemName: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#333",
+  cancelContainer: {
+    alignItems: "center",
+  },
+  cancelSquare: {
+    width: 32,
+    height: 32,
+    borderWidth: 1,
+    borderColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 4,
     marginBottom: 2,
   },
-  itemQty: {
-    fontSize: 11,
-    color: "#999",
-  },
-  itemPrice: {
+  cancelLabel: {
     fontSize: 12,
+    color: "#000",
+  },
+  itemsBlock: {
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 4,
+    color: "#000",
+  },
+  itemsBullets: {
+    paddingLeft: 8,
+  },
+  bulletText: {
+    fontSize: 13,
+    color: "#000",
+    marginBottom: 2,
+  },
+  infoLine: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  infoLabel: {
     fontWeight: "700",
-    color: "#FF6B35",
+    color: "#000",
   },
-  deliveryInfo: {
+  infoValue: {
+    color: "#000",
+  },
+
+  // Finalizados
+  completedRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
-  deliveryText: {
-    fontSize: 12,
-    color: "#666",
-    fontWeight: "500",
+  completedLeft: {
+    flex: 1,
+    paddingRight: 8,
   },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  completedRight: {
+    flex: 1,
+    paddingLeft: 8,
+    borderLeftWidth: 1,
+    borderLeftColor: "#d4d4d4",
   },
-  totalText: {
+  restaurantNameSmall: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#FF6B35",
+    color: "#000",
+    marginBottom: 4,
   },
-  cancelButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#c33",
-    backgroundColor: "#fff5f5",
-  },
-  cancelText: {
+  completedText: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#c33",
+    color: "#555",
+    marginBottom: 2,
   },
+  productsChosenTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#555",
+    marginBottom: 4,
+  },
+  bulletTextSmall: {
+    fontSize: 12,
+    color: "#555",
+    marginBottom: 2,
+  },
+
   emptyContainer: {
     flex: 1,
     justifyContent: "center",

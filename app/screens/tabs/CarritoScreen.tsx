@@ -51,35 +51,29 @@ const CartItemCard = ({
         )}
       </View>
 
-      {/* Información */}
+      {/* Contenido */}
       <View style={styles.itemContent}>
         <Text style={styles.itemName} numberOfLines={2}>
           {name}
         </Text>
         <Text style={styles.itemPrice}>${price.toLocaleString()}</Text>
-      </View>
 
-      {/* Controles de cantidad */}
-      <View style={styles.quantityControl}>
-        <TouchableOpacity style={styles.quantityButton} onPress={onDecrease}>
-          <Ionicons name="remove" size={20} color="#001E60" />
-        </TouchableOpacity>
+        {/* Controles */}
+        <View style={styles.controlsRow}>
+          <TouchableOpacity style={styles.quantityButton} onPress={onDecrease}>
+            <Ionicons name="remove" size={18} color="#001E60" />
+          </TouchableOpacity>
 
-        <Text style={styles.quantityText}>{quantity}</Text>
+          <Text style={styles.quantityText}>{quantity}</Text>
 
-        <TouchableOpacity style={styles.quantityButton} onPress={onIncrease}>
-          <Ionicons name="add" size={20} color="#001E60" />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.quantityButton} onPress={onIncrease}>
+            <Ionicons name="add" size={18} color="#001E60" />
+          </TouchableOpacity>
 
-      {/* Subtotal y eliminar */}
-      <View style={styles.itemFooter}>
-        <Text style={styles.subtotal}>
-          ${(price * quantity).toLocaleString()}
-        </Text>
-        <TouchableOpacity style={styles.deleteButton} onPress={onRemove}>
-          <Ionicons name="trash-outline" size={20} color="#c33" />
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.deleteButton} onPress={onRemove}>
+            <Ionicons name="trash-outline" size={20} color="#001E60" />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -117,32 +111,26 @@ export default function CarritoScreen() {
 
   const handleCheckout = async () => {
     try {
-      // Validar carrito
       if (cart.items.length === 0) {
         Alert.alert("Carrito vacío", "Agrega productos antes de continuar");
         return;
       }
 
-      // Validar hora de entrega
       if (!deliveryTime) {
         Alert.alert("Hora de entrega", "Selecciona una hora para tu pedido");
         return;
       }
 
-      // Obtener rama del primer producto (todos son del mismo en este momento)
       const branchId = cart.items[0].branchId;
 
-      // Crear pedido
       const order = await createOrder(
         branchId,
         cart.items,
         deliveryTime.toISOString()
       );
 
-      // Limpiar carrito
       await clearCart();
 
-      // Mostrar éxito
       Alert.alert(
         "✅ Pedido creado",
         `Tu pedido ${order.id} ha sido creado correctamente`,
@@ -192,18 +180,13 @@ export default function CarritoScreen() {
     });
   };
 
-  return (
-    <SafeAreaContainer backgroundColor="#f5f5f5">
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Mi Carrito</Text>
-        {cart.items.length > 0 && (
-          <TouchableOpacity onPress={clearCart}>
-            <Text style={styles.clearButton}>Limpiar</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {cart.items.length === 0 ? (
+  // Si quieres mantener el estado vacío parecido al anterior:
+  if (cart.items.length === 0) {
+    return (
+      <SafeAreaContainer backgroundColor="#f5f5f5">
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Carrito de compras</Text>
+        </View>
         <View style={styles.emptyContainer}>
           <Ionicons name="cart-outline" size={80} color="#ccc" />
           <Text style={styles.emptyText}>Tu carrito está vacío</Text>
@@ -211,59 +194,58 @@ export default function CarritoScreen() {
             Agrega productos para continuar
           </Text>
         </View>
-      ) : (
-        <>
-          <FlatList
-            data={cart.items}
-            renderItem={renderCartItem}
-            keyExtractor={(item) => item.productId}
-            contentContainerStyle={styles.listContent}
-            scrollEnabled={true}
-          />
+      </SafeAreaContainer>
+    );
+  }
 
-          {/* Footer con hora de entrega, total y botón */}
-          <View style={styles.footer}>
-            {/* Selector de hora de entrega */}
-            <View style={styles.deliveryTimeSection}>
-              <Text style={styles.deliveryLabel}>Hora de entrega</Text>
-              <TouchableOpacity
-                style={styles.deliveryButton}
-                onPress={() => setShowDatePicker(true)}
-              >
-                <Ionicons name="time-outline" size={18} color="#001E60" />
-                <Text style={styles.deliveryTime}>
-                  {deliveryTime ? formatTime(deliveryTime) : "Seleccionar hora"}
-                </Text>
-                <Ionicons name="chevron-forward" size={18} color="#001E60" />
-              </TouchableOpacity>
-            </View>
+  return (
+    <SafeAreaContainer backgroundColor="#f5f5f5">
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Carrito de compras</Text>
+      </View>
 
-            {/* Total */}
-            <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalPrice}>
-                ${cart.total.toLocaleString()}
-              </Text>
-            </View>
+      {/* Lista */}
+      <FlatList
+        data={cart.items}
+        renderItem={renderCartItem}
+        keyExtractor={(item) => item.productId}
+        contentContainerStyle={styles.listContent}
+      />
 
-            {/* Botón checkout */}
-            <Button
-              title={loading ? "Creando pedido..." : "Finalizar pedido"}
-              onPress={handleCheckout}
-              disabled={loading || !deliveryTime}
-            />
-          </View>
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.deliveryText}>Seleccione hora de entrega</Text>
 
-          {/* Date Time Picker */}
-          {showDatePicker && (
-            <DateTimePicker
-              value={deliveryTime || new Date()}
-              mode="time"
-              display="spinner"
-              onChange={handleDatePicked}
-            />
-          )}
-        </>
+        <TouchableOpacity
+          style={styles.timeBox}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Text style={styles.timeText}>
+            {deliveryTime ? formatTime(deliveryTime) : "Seleccionar"}
+          </Text>
+          <Ionicons name="pencil-outline" size={20} color="#001E60" />
+        </TouchableOpacity>
+
+        <View style={styles.totalBox}>
+          <Text style={styles.totalLabel}>Subtotal:</Text>
+          <Text style={styles.totalValue}>${cart.total.toLocaleString()}</Text>
+        </View>
+
+        <Button
+          title={loading ? "Creando pedido..." : "Finalizar pedido"}
+          onPress={handleCheckout}
+          disabled={loading || !deliveryTime}
+        />
+      </View>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={deliveryTime || new Date()}
+          mode="time"
+          display="spinner"
+          onChange={handleDatePicked}
+        />
       )}
     </SafeAreaContainer>
   );
@@ -271,111 +253,150 @@ export default function CarritoScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    paddingVertical: 20,
     paddingHorizontal: 16,
-    paddingVertical: 16,
     backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
     color: "#001E60",
   },
-  clearButton: {
-    fontSize: 14,
-    color: "#FF6B35",
-    fontWeight: "600",
-  },
+
   listContent: {
     paddingHorizontal: 12,
     paddingVertical: 12,
-    paddingBottom: 280,
+    paddingBottom: 350, // más padding para que no se tape con la navbar
   },
+
   itemCard: {
     backgroundColor: "white",
     borderRadius: 12,
     padding: 12,
-    marginBottom: 12,
+    marginBottom: 14,
     flexDirection: "row",
-    alignItems: "center",
+    gap: 12,
     elevation: 2,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
-    gap: 12,
   },
+
   imageContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
+    width: 85,
+    height: 85,
+    borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#f5f5f5",
   },
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   imagePlaceholder: {
-    width: "100%",
-    height: "100%",
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f5f5f5",
   },
+
   itemContent: {
     flex: 1,
   },
+
   itemName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "700",
     color: "#001E60",
-    marginBottom: 6,
   },
   itemPrice: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#FF6B35",
+    fontSize: 14,
+    color: "#001E60",
+    fontWeight: "700",
+    marginTop: 4,
   },
-  quantityControl: {
+
+  controlsRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    gap: 8,
+    marginTop: 8,
+    gap: 10,
   },
+
   quantityButton: {
     width: 28,
     height: 28,
+    backgroundColor: "#e6e6e6",
+    borderRadius: 6,
     justifyContent: "center",
     alignItems: "center",
   },
+
   quantityText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#333",
-    minWidth: 24,
-    textAlign: "center",
-  },
-  itemFooter: {
-    alignItems: "center",
-    gap: 8,
-  },
-  subtotal: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "700",
     color: "#001E60",
+    minWidth: 20,
+    textAlign: "center",
   },
+
   deleteButton: {
-    padding: 8,
+    marginLeft: "auto",
+    padding: 4,
   },
+
+  footer: {
+    backgroundColor: "white",
+    padding: 16,
+    paddingBottom: 40, // espacio para que no lo tape la navbar
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    gap: 12,
+  },
+
+  deliveryText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#001E60",
+  },
+
+  timeBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+
+  timeText: {
+    fontSize: 22,
+    color: "#001E60",
+    fontWeight: "700",
+  },
+
+  totalBox: {
+    backgroundColor: "#001E60",
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  totalLabel: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  totalValue: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
@@ -392,63 +413,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
     marginTop: 8,
-  },
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "white",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 80,
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-    gap: 12,
-  },
-  deliveryTimeSection: {
-    gap: 8,
-  },
-  deliveryLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#666",
-    textTransform: "uppercase",
-  },
-  deliveryButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  deliveryTime: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#001E60",
-  },
-  totalContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  totalLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#666",
-  },
-  totalPrice: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#FF6B35",
   },
 });
