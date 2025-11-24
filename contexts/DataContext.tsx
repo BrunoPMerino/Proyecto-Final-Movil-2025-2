@@ -19,6 +19,10 @@ interface Product {
 interface Branch {
   id: string;
   name: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  descriptionbranch?: string;
 }
 
 interface DataContextType {
@@ -51,7 +55,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const { data, error: err } = await supabase
         .from("branches")
-        .select("id, name")
+        .select("id, name, address, latitude, longitude, descriptionbranch")
         .limit(10);
 
       if (err) throw err;
