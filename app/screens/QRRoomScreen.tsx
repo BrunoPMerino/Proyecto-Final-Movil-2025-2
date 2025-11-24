@@ -1,11 +1,38 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import SafeAreaContainer from "../../components/SafeAreaContainer";
+import CameraModal from "../modals/CameraModal"; // ⬅️ importa el modal de cámara
 
 export default function QRRoomScreen() {
   const router = useRouter();
+
+  // controla la visibilidad del modal
+  const [cameraVisible, setCameraVisible] = useState(false);
+  // guarda el último QR leído
+  const [lastQrData, setLastQrData] = useState<string | null>(null);
+
+  const handleOpenCamera = () => {
+    setLastQrData(null);        // opcional: limpiar último valor
+    setCameraVisible(true);
+  };
+
+  const handleCloseCamera = () => {
+    setCameraVisible(false);
+  };
+
+  const handleQrConfirm = (qrData: string) => {
+    // aquí recibes la info del código QR
+    console.log("QR escaneado:", qrData);
+    setLastQrData(qrData);
+
+    // si quieres, podrías navegar según el código:
+    // router.push(`/screens/rooms/${qrData}`);
+
+    setCameraVisible(false);
+  };
+
   return (
     <SafeAreaContainer backgroundColor="#f5f5f5">
       <View style={styles.header}>
@@ -23,11 +50,26 @@ export default function QRRoomScreen() {
           Apunta la cámara a un código QR para acceder a la sala
         </Text>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleOpenCamera}>
           <Ionicons name="camera-outline" size={24} color="white" />
           <Text style={styles.buttonText}>Abrir Cámara</Text>
         </TouchableOpacity>
+
+        {/* Mostrar el último QR leído (opcional, útil para debug) */}
+        {lastQrData && (
+          <View style={styles.qrInfoBox}>
+            <Text style={styles.qrInfoTitle}>Último QR escaneado:</Text>
+            <Text style={styles.qrInfoText}>{lastQrData}</Text>
+          </View>
+        )}
       </View>
+
+      {/* Modal de cámara para escanear solo QR */}
+      <CameraModal
+        isVisible={cameraVisible}
+        onClose={handleCloseCamera}
+        onConfirm={handleQrConfirm}
+      />
     </SafeAreaContainer>
   );
 }
@@ -80,5 +122,22 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  qrInfoBox: {
+    marginTop: 24,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#eef3ff",
+    width: "100%",
+  },
+  qrInfoTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#001E60",
+    marginBottom: 4,
+  },
+  qrInfoText: {
+    fontSize: 13,
+    color: "#333",
   },
 });

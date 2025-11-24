@@ -64,7 +64,7 @@ export default function HomeCatalogoScreen() {
 
   const handleProductPress = (product: any) => {
     router.push({
-      pathname: "/screens/modals/ProductDetailsScreen",
+      pathname: "./modals/ProductDetailsScreen",
       params: {
         productId: product.id,
         productName: product.name,
