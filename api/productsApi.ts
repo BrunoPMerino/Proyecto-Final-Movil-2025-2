@@ -4,26 +4,72 @@ import { deleteImage, getPublicUrl, uploadProductImage } from "./storageApi";
 export const getProducts = async (branchId: string) => {
   const { data, error } = await supabase
     .from("products")
-    .select(
-      "id, name, description, price, stock, image_url, is_available, category_id, branch_id"
-    )
-    .eq("branch_id", branchId)
+    .select(`
+      id, 
+      name, 
+      description, 
+      price, 
+      image_url, 
+      category_id,
+      product_branches!inner(stock, is_available, branch_id)
+    `)
+    .eq("product_branches.branch_id", branchId)
     .order("name", { ascending: true });
 
   if (error) throw error;
-  return data;
+  
+  // Aplanar la estructura para mantener compatibilidad
+  return data?.map((item: any) => ({
+    ...item,
+    stock: item.product_branches[0]?.stock ?? 0,
+    is_available: item.product_branches[0]?.is_available ?? false,
+    branch_id: item.product_branches[0]?.branch_id,
+    product_branches: undefined
+  }));
 };
 
 export const getAllProducts = async () => {
   const { data, error } = await supabase
     .from("products")
-    .select(
-      "id, name, description, price, stock, image_url, is_available, category_id, branch_id"
-    )
+    .select(`
+      id, 
+      name, 
+      description, 
+      price, 
+      image_url, 
+      category_id,
+      product_branches(stock, is_available, branch_id)
+    `)
     .order("name", { ascending: true });
 
   if (error) throw error;
-  return data;
+  
+  // Aplanar: crear un item por cada combinación producto-sucursal
+  const flattened: any[] = [];
+  data?.forEach((product: any) => {
+    if (product.product_branches && product.product_branches.length > 0) {
+      product.product_branches.forEach((pb: any) => {
+        flattened.push({
+          ...product,
+          stock: pb.stock,
+          is_available: pb.is_available,
+          branch_id: pb.branch_id,
+          product_branches: undefined
+        });
+      });
+    } else {
+      // Producto sin sucursales asignadas
+      flattened.push({
+        ...product,
+        stock: 0,
+        is_available: false,
+        branch_id: null,
+        product_branches: undefined
+      });
+    }
+  });
+  
+  return flattened;
 };
 
 export const getCategories = async () => {

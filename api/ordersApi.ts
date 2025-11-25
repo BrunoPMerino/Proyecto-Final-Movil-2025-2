@@ -41,10 +41,12 @@ const verifyStock = async (items: CartItem[]): Promise<boolean> => {
   console.log("[ordersApi] Verificando stock...");
 
   for (const item of items) {
-    const { data: product, error } = await supabase
-      .from("products")
+    // Ahora el stock está en product_branches, no en products
+    const { data: productBranch, error } = await supabase
+      .from("product_branches")
       .select("stock")
-      .eq("id", item.productId)
+      .eq("product_id", item.productId)
+      .eq("branch_id", item.branchId)
       .single();
 
     if (error) {
@@ -55,10 +57,10 @@ const verifyStock = async (items: CartItem[]): Promise<boolean> => {
       throw new Error(`No se puede verificar stock de ${item.name}`);
     }
 
-    if (!product || product.stock < item.quantity) {
+    if (!productBranch || productBranch.stock < item.quantity) {
       console.warn(
         `[ordersApi] Stock insuficiente: ${item.name} (disponible: ${
-          product?.stock || 0
+          productBranch?.stock || 0
         }, solicitado: ${item.quantity})`
       );
       return false;
@@ -70,18 +72,37 @@ const verifyStock = async (items: CartItem[]): Promise<boolean> => {
 };
 
 const decrementStock = async (items: CartItem[]): Promise<void> => {
-  console.log("[ordersApi] Decontando stock...");
+  console.log("[ordersApi] Descontando stock...");
 
   for (const item of items) {
-    const { error } = await supabase.rpc("decrement_product_stock", {
-      product_id: item.productId,
-      quantity: item.quantity,
-    });
+    // Actualizar stock en product_branches
+    const { data: current, error: fetchError } = await supabase
+      .from("product_branches")
+      .select("stock")
+      .eq("product_id", item.productId)
+      .eq("branch_id", item.branchId)
+      .single();
 
-    if (error) {
+    if (fetchError) {
+      console.error(
+        `[ordersApi] Error obteniendo stock de ${item.productId}:`,
+        fetchError
+      );
+      throw new Error(`Error actualizando stock de ${item.name}`);
+    }
+
+    const newStock = (current?.stock || 0) - item.quantity;
+
+    const { error: updateError } = await supabase
+      .from("product_branches")
+      .update({ stock: newStock })
+      .eq("product_id", item.productId)
+      .eq("branch_id", item.branchId);
+
+    if (updateError) {
       console.error(
         `[ordersApi] Error descontando stock de ${item.productId}:`,
-        error
+        updateError
       );
       throw new Error(`Error actualizando stock de ${item.name}`);
     }
@@ -300,12 +321,33 @@ export const cancelOrder = async (orderId: string): Promise<Order> => {
 
     const updated = await updateOrderStatus(orderId, "cancelled");
 
+    // Restaurar stock en product_branches
     if (order.order_items) {
       for (const item of order.order_items) {
-        await supabase.rpc("increment_product_stock", {
-          product_id: item.product_id,
-          quantity: item.quantity,
-        });
+        // Obtener stock actual
+        const { data: current, error: fetchError } = await supabase
+          .from("product_branches")
+          .select("stock")
+          .eq("product_id", item.product_id)
+          .eq("branch_id", order.branch_id)
+          .single();
+
+        if (fetchError) {
+          console.error(
+            `[ordersApi] Error obteniendo stock para restaurar:`,
+            fetchError
+          );
+          continue; // Continuar con el siguiente item
+        }
+
+        // Incrementar stock
+        const newStock = (current?.stock || 0) + item.quantity;
+
+        await supabase
+          .from("product_branches")
+          .update({ stock: newStock })
+          .eq("product_id", item.product_id)
+          .eq("branch_id", order.branch_id);
       }
     }
 

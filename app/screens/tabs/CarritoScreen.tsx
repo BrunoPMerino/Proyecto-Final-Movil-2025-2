@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   footer: {
     backgroundColor: "white",
     padding: 16,
-    paddingBottom: 40, // espacio para que no lo tape la navbar
+    paddingBottom: 100, // espacio para que no lo tape la navbar
     borderTopWidth: 1,
     borderTopColor: "#eee",
     gap: 12,

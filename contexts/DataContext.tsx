@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useState } from "react";
-import { getAllProducts, getProducts } from "../api/productsApi";
+import { getAllProducts, getCategories, getProducts } from "../api/productsApi";
 import { getPublicUrl } from "../api/storageApi";
 import { supabase } from "../utils/supabase";
 
@@ -8,12 +8,13 @@ interface Product {
   name: string;
   description: string;
   price: number;
-  stock: number;
   image_url: string;
   image_url_public?: string | null;
-  is_available: boolean;
   category_id: string;
-  branch_id: string;
+  // Campos opcionales que vienen de product_branches
+  stock?: number;
+  is_available?: boolean;
+  branch_id?: string;
 }
 
 interface Branch {
@@ -34,6 +35,7 @@ interface DataContextType {
   loadProducts: (branchId: string) => Promise<void>;
   loadAllProducts: () => Promise<void>;
   loadBranches: () => Promise<void>;
+  loadCategories: () => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -66,6 +68,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     } catch (err: any) {
       console.error("Error loading branches:", err);
       setError("No se pudieron cargar las sucursales");
+    }
+  };
+
+  // Cargar todas las categorías
+  const loadCategories = async () => {
+    try {
+      const data = await getCategories();
+      if (data) {
+        setCategories(data);
+      }
+    } catch (err: any) {
+      console.error("Error loading categories:", err);
     }
   };
 
@@ -171,6 +185,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         loadProducts,
         loadAllProducts,
         loadBranches,
+        loadCategories,
         loading,
         error,
       }}

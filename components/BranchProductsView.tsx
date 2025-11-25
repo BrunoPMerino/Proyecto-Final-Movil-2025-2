@@ -7,12 +7,13 @@ interface Product {
   name: string;
   description: string;
   price: number;
-  stock: number;
   image_url?: string;
   image_url_public?: string | null;
-  is_available: boolean;
   category_id: string;
-  branch_id: string;
+  // Campos opcionales de product_branches
+  stock?: number;
+  is_available?: boolean;
+  branch_id?: string;
 }
 
 interface Branch {

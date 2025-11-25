@@ -2,10 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  View
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    View
 } from "react-native";
 import BranchProductsView from "../../../components/BranchProductsView";
 import FilterBar from "../../../components/FilterBar";
@@ -16,8 +16,16 @@ import { useData } from "../../../contexts/DataContext";
 
 export default function HomeCatalogoScreen() {
   const router = useRouter();
-  const { products, branches, loadAllProducts, loadBranches, loading, error } =
-    useData();
+  const {
+    products,
+    categories,
+    branches,
+    loadAllProducts,
+    loadBranches,
+    loadCategories,
+    loading,
+    error,
+  } = useData();
   const [refreshing, setRefreshing] = React.useState(false);
   const [searchText, setSearchText] = useState("");
   // mantenemos el estado por compatibilidad con FilterBar,
@@ -25,10 +33,11 @@ export default function HomeCatalogoScreen() {
   const [viewMode, setViewMode] = useState<"grid" | "branches">("branches");
   const [activeFilter, setActiveFilter] = useState("todos");
 
-  // Cargar productos y sucursales al montar
+  // Cargar productos, sucursales y categorías al montar
   useEffect(() => {
     loadAllProducts();
     loadBranches();
+    loadCategories();
   }, []);
 
   // Filtrar productos según búsqueda y filtro
@@ -43,17 +52,19 @@ export default function HomeCatalogoScreen() {
     return matchesSearch && matchesFilter;
   });
 
+  // Función helper para obtener el nombre de la categoría
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find((c) => c.id === categoryId);
+    return category?.name || categoryId;
+  };
+
   // Crear opciones de filtro desde categorías
   const filterOptions = [
     { id: "todos", label: "Todos" },
-    ...Array.from(
-      new Map(
-        products.map((p) => [
-          p.category_id,
-          { id: p.category_id, label: p.category_id },
-        ])
-      ).values()
-    ),
+    ...categories.map((category) => ({
+      id: category.id,
+      label: category.name,
+    })),
   ];
 
   const handleRefresh = async () => {
