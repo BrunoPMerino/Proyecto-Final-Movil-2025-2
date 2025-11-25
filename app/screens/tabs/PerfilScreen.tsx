@@ -64,11 +64,9 @@ export default function PerfilScreen() {
 
         {/* Menú */}
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="settings-outline" size={24} color="#001E60" />
-            <Text style={styles.menuItemText}>Configuración</Text>
-            <Ionicons name="chevron-forward" size={24} color="#ccc" />
-          </TouchableOpacity>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>Configuraciones</Text>
+          </View>
 
           {/* Métodos de pago */}
           <TouchableOpacity
@@ -256,6 +254,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     marginBottom: 24,
+  },
+  sectionTitleContainer: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#f8f8f8",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#001E60",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    textAlign: "center",
   },
   menuItem: {
     flexDirection: "row",

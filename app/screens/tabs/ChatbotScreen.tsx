@@ -318,7 +318,7 @@ export default function ChatbotScreen() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 100}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 20}
     >
       <LinearGradient
         colors={["#f5f7fa", "#c3cfe2"]}
@@ -346,7 +346,7 @@ export default function ChatbotScreen() {
       </Animated.View>
 
       {/* Input Area */}
-      <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 10 }]}>
+      <View style={[styles.inputContainer]}>
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
@@ -468,6 +468,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
+    paddingBottom: 20,
   },
   inputWrapper: {
     flexDirection: "row",
@@ -483,8 +484,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     maxHeight: 100,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingTop: 12,
+    paddingBottom: 12,
+    textAlignVertical: "center",
   },
   sendButton: {
     width: 36,

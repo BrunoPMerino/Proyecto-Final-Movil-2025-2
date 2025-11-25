@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
   Animated,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -122,13 +123,14 @@ export default function BranchDetailsCard({
 
       {/* Action Buttons */}
       <View style={styles.actions}>
-        <Pressable style={styles.actionButton}>
+        <Pressable 
+          style={styles.actionButton}
+          onPress={() => {
+            Linking.openURL('https://www.google.com/maps/place/Universidad+de+La+Sabana/@4.8617826,-74.0372174,16z/data=!4m6!3m5!1s0x8e3f87fe88d0dcd1:0x590e68a0f80af0a4!8m2!3d4.8615787!4d-74.0325368!16s%2Fg%2F11bc5ltjpg?entry=ttu&g_ep=EgoyMDI1MTEyMy4xIKXMDSoASAFQAw%3D%3D');
+          }}
+        >
           <Ionicons name="navigate" size={20} color="#fff" />
           <Text style={styles.actionButtonText}>Cómo llegar</Text>
-        </Pressable>
-        <Pressable style={[styles.actionButton, styles.actionButtonSecondary]}>
-          <Ionicons name="call" size={20} color="#001E60" />
-          <Text style={styles.actionButtonTextSecondary}>Llamar</Text>
         </Pressable>
       </View>
     </Animated.View>
@@ -225,7 +227,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   actionButton: {
-    flex: 1,
     backgroundColor: "#001E60",
     borderRadius: 12,
     paddingVertical: 14,
@@ -233,6 +234,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
+    flex: 1,
   },
   actionButtonSecondary: {
     backgroundColor: "#fff",
