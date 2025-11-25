@@ -7,12 +7,13 @@ interface Product {
   name: string;
   description: string;
   price: number;
-  stock: number;
   image_url?: string;
   image_url_public?: string | null;
-  is_available: boolean;
   category_id: string;
-  branch_id: string;
+  // Campos opcionales de product_branches
+  stock?: number;
+  is_available?: boolean;
+  branch_id?: string;
 }
 
 interface ProductGridProps {
@@ -37,7 +38,7 @@ export default function ProductGrid({
       description={item.description}
       price={item.price}
       imageUrl={item.image_url_public ?? undefined}
-      stock={item.stock}
+      stock={item.stock ?? 0}
       onPress={() => onProductPress(item)}
       style={{ flex: 1, marginHorizontal: 4 }}
     />

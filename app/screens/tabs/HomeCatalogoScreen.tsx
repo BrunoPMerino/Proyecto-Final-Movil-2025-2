@@ -25,13 +25,14 @@ export default function HomeCatalogoScreen() {
   const router = useRouter();
   const {
     products,
+    categories,
     branches,
     loadAllProducts,
     loadBranches,
+    loadCategories,
     loading,
     error,
   } = useData();
-
   const [refreshing, setRefreshing] = React.useState(false);
   const [searchText, setSearchText] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "branches">("branches");
@@ -46,6 +47,7 @@ export default function HomeCatalogoScreen() {
   useEffect(() => {
     loadAllProducts();
     loadBranches();
+    loadCategories();
   }, []);
 
   // --------- Fetch de clima (Open-Meteo) ----------
@@ -95,27 +97,19 @@ export default function HomeCatalogoScreen() {
     return matchesSearch && matchesFilter;
   });
 
-  // Mapeo simple para mostrar nombres bonitos en filtros
-  const categoryLabels: Record<string, string> = {
-    burgers: "Hamburguesas",
-    drinks: "Bebidas",
-    desserts: "Postres",
-    snacks: "Snacks",
+  // Función helper para obtener el nombre de la categoría
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find((c) => c.id === categoryId);
+    return category?.name || categoryId;
   };
 
+  // Crear opciones de filtro desde categorías
   const filterOptions = [
     { id: "todos", label: "Todos" },
-    ...Array.from(
-      new Map(
-        products.map((p) => [
-          p.category_id,
-          {
-            id: p.category_id,
-            label: categoryLabels[p.category_id] || p.category_id,
-          },
-        ])
-      ).values()
-    ),
+    ...categories.map((category) => ({
+      id: category.id,
+      label: category.name,
+    })),
   ];
 
   const handleRefresh = async () => {
