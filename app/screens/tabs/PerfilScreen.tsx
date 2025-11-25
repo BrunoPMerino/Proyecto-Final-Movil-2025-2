@@ -14,6 +14,18 @@ import Button from "../../../components/Button";
 import SafeAreaContainer from "../../../components/SafeAreaContainer";
 import { useAuth } from "../../../contexts/AuthContext";
 
+/**
+ * Pantalla de perfil de usuario.
+ * Gestiona la información del usuario, métodos de pago y acceso a soporte.
+ * 
+ * Funcionalidades:
+ * - Visualización de datos del usuario
+ * - Gestión de métodos de pago (Efectivo/Tarjeta)
+ * - Acceso a soporte vía email
+ * - Logout
+ * 
+ * @component
+ */
 export default function PerfilScreen() {
   const router = useRouter();
   const { logout, user } = useAuth();
@@ -29,6 +41,9 @@ export default function PerfilScreen() {
     router.push("/screens/QRRoomScreen");
   };
 
+  /**
+   * Cierra la sesión del usuario y redirige al splash screen.
+   */
   const handleLogout = async () => {
     try {
       await logout();
@@ -38,6 +53,10 @@ export default function PerfilScreen() {
     }
   };
 
+  /**
+   * Abre el cliente de correo predeterminado para contactar a soporte.
+   * Pre-llena el asunto y el cuerpo del mensaje.
+   */
   const openSupportEmail = () => {
     const email = "soporte@comidasabana.com";
     const subject = "Ayuda App Comida Sabana";

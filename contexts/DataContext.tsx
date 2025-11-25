@@ -3,12 +3,17 @@ import { getAllProducts, getCategories, getProducts } from "../api/productsApi";
 import { getPublicUrl } from "../api/storageApi";
 import { supabase } from "../utils/supabase";
 
+/**
+ * Estructura de un producto en la aplicación.
+ * @interface Product
+ */
 interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
   image_url: string;
+  /** URL pública generada para mostrar la imagen */
   image_url_public?: string | null;
   category_id: string;
   // Campos opcionales que vienen de product_branches
@@ -17,6 +22,10 @@ interface Product {
   branch_id?: string;
 }
 
+/**
+ * Estructura de una sucursal o punto de venta.
+ * @interface Branch
+ */
 interface Branch {
   id: string;
   name: string;
@@ -26,15 +35,24 @@ interface Branch {
   descriptionbranch?: string;
 }
 
+/**
+ * Contexto global de datos de la aplicación.
+ * Maneja la carga y distribución de productos, categorías y sucursales.
+ * @interface DataContextType
+ */
 interface DataContextType {
   products: Product[];
   categories: any[];
   branches: Branch[];
   currentBranchId: string | null;
   setCurrentBranchId: (id: string) => void;
+  /** Carga productos de una sucursal específica */
   loadProducts: (branchId: string) => Promise<void>;
+  /** Carga todos los productos disponibles */
   loadAllProducts: () => Promise<void>;
+  /** Carga la lista de sucursales */
   loadBranches: () => Promise<void>;
+  /** Carga las categorías de productos */
   loadCategories: () => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -42,6 +60,12 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+/**
+ * Proveedor de datos globales.
+ * Centraliza la lógica de obtención de datos desde Supabase.
+ * 
+ * @component
+ */
 export const DataProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {

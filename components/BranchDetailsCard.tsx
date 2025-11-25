@@ -9,6 +9,10 @@ import {
   View,
 } from "react-native";
 
+/**
+ * Estructura de datos para una sucursal.
+ * @interface Branch
+ */
 interface Branch {
   id: string;
   name: string;
@@ -18,12 +22,31 @@ interface Branch {
   descriptionbranch?: string;
 }
 
+/**
+ * Props para el componente BranchDetailsCard.
+ * @interface BranchDetailsCardProps
+ */
 interface BranchDetailsCardProps {
+  /** La sucursal seleccionada para mostrar detalles */
   branch: Branch | null;
+  /** Función para cerrar la tarjeta de detalles */
   onClose: () => void;
+  /** Controla si la tarjeta es visible o no */
   visible: boolean;
 }
 
+/**
+ * Tarjeta deslizante que muestra los detalles de una sucursal seleccionada.
+ * Incluye información como dirección, horarios y acciones rápidas (navegación).
+ * 
+ * @component
+ * @example
+ * <BranchDetailsCard 
+ *   branch={selectedBranch} 
+ *   onClose={() => setShowDetails(false)} 
+ *   visible={showDetails} 
+ * />
+ */
 export default function BranchDetailsCard({
   branch,
   onClose,
@@ -31,8 +54,13 @@ export default function BranchDetailsCard({
 }: BranchDetailsCardProps) {
   const slideAnim = React.useRef(new Animated.Value(300)).current;
 
+  /**
+   * Efecto para manejar la animación de entrada y salida de la tarjeta.
+   * Se ejecuta cuando cambia la visibilidad o la sucursal seleccionada.
+   */
   React.useEffect(() => {
     if (visible && branch) {
+      // Animar hacia arriba (mostrar)
       Animated.spring(slideAnim, {
         toValue: 0,
         useNativeDriver: true,
@@ -40,6 +68,7 @@ export default function BranchDetailsCard({
         friction: 11,
       }).start();
     } else {
+      // Animar hacia abajo (ocultar)
       Animated.timing(slideAnim, {
         toValue: 300,
         duration: 250,

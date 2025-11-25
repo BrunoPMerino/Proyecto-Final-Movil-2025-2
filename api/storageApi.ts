@@ -10,6 +10,13 @@ const generateUUID = () => {
 };
 
 // 📌 1. SUBIR imagen
+/**
+ * Sube una imagen de producto al Storage de Supabase.
+ * Genera un nombre único para evitar colisiones.
+ * 
+ * @param {string} fileUri - URI local del archivo de imagen
+ * @returns {Promise<string>} Path del archivo subido en el bucket
+ */
 export const uploadProductImage = async (fileUri: string) => {
   try {
     // 1. Obtener blob (Expo → RN)
@@ -38,6 +45,12 @@ export const uploadProductImage = async (fileUri: string) => {
 };
 
 // 📌 2. Obtener URL pública firmada
+/**
+ * Obtiene la URL pública de una imagen almacenada.
+ * 
+ * @param {string} imagePath - Path del archivo en el bucket
+ * @returns {string | null} URL pública o null si hay error
+ */
 export const getPublicUrl = (imagePath: string) => {
   if (!imagePath) {
     console.warn("[getPublicUrl] imagePath está vacío");
@@ -63,6 +76,15 @@ export const getPublicUrl = (imagePath: string) => {
 };
 
 // 📌 3. Obtener URL pública con transformaciones (resize, optimize)
+/**
+ * Obtiene una URL pública con transformaciones de imagen (redimensionamiento).
+ * Útil para optimizar la carga de imágenes en listas.
+ * 
+ * @param {string} imagePath - Path del archivo
+ * @param {number} [width=300] - Ancho deseado
+ * @param {number} [height=300] - Alto deseado
+ * @returns {string} URL transformada
+ */
 export const getPublicUrlWithTransform = (
   imagePath: string,
   width?: number,

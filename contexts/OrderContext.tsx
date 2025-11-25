@@ -1,19 +1,24 @@
 import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
 import * as ordersApi from "../api/ordersApi";
 import { CartItem } from "../utils/cartStorage";
 import { supabase } from "../utils/supabase";
 
+/**
+ * Estructura de un pedido en el sistema.
+ * @interface Order
+ */
 export interface Order {
   id: string;
   user_id: string;
   branch_id: string;
   total: number;
+  /** Estado actual del pedido */
   status: "pending" | "cooking" | "ready" | "completed" | "cancelled";
   delivery_time?: string;
   created_at: string;
@@ -21,29 +26,45 @@ export interface Order {
   order_items?: any[];
 }
 
+/**
+ * Contexto para la gestión de pedidos.
+ * @interface OrderContextType
+ */
 interface OrderContextType {
   orders: Order[];
   currentOrder: Order | null;
   loading: boolean;
   error: string | null;
+  /** Crea un nuevo pedido con los items del carrito */
   createOrder: (
     branchId: string,
     items: CartItem[],
     deliveryTime?: string
   ) => Promise<Order>;
+  /** Obtiene el historial de pedidos del usuario */
   getUserOrders: () => Promise<void>;
+  /** Obtiene los detalles de un pedido específico */
   getOrderById: (orderId: string) => Promise<Order>;
+  /** Actualiza el estado de un pedido */
   updateOrderStatus: (
     orderId: string,
     status: Order["status"]
   ) => Promise<Order>;
+  /** Cancela un pedido activo */
   cancelOrder: (orderId: string) => Promise<Order>;
+  /** Suscribe a cambios en tiempo real de un pedido */
   subscribeToOrder: (orderId: string, callback: (order: Order) => void) => void;
   clearError: () => void;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
+/**
+ * Proveedor de pedidos.
+ * Gestiona el ciclo de vida de los pedidos y la sincronización en tiempo real.
+ * 
+ * @component
+ */
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {

@@ -1,5 +1,9 @@
 import { supabase } from "../utils/supabase";
 
+/**
+ * Representa un item en el carrito antes de convertirse en pedido.
+ * @interface CartItem
+ */
 export interface CartItem {
   productId: string;
   name: string;
@@ -9,6 +13,10 @@ export interface CartItem {
   branchId: string;
 }
 
+/**
+ * Representa un item dentro de un pedido confirmado.
+ * @interface OrderItem
+ */
 export interface OrderItem {
   id: string;
   product_id: string;
@@ -21,6 +29,10 @@ export interface OrderItem {
   };
 }
 
+/**
+ * Estructura completa de un pedido.
+ * @interface Order
+ */
 export interface Order {
   id: string;
   user_id: string;
@@ -115,6 +127,23 @@ const decrementStock = async (items: CartItem[]): Promise<void> => {
 /*           CREATE ORDER           */
 /* ──────────────────────────────── */
 
+/**
+ * Crea un nuevo pedido en el sistema.
+ * Realiza verificaciones de stock, cálculo de totales y actualización de inventario.
+ * 
+ * Pasos:
+ * 1. Verificar stock disponible
+ * 2. Obtener usuario autenticado
+ * 3. Calcular total del pedido
+ * 4. Insertar registro en tabla 'orders'
+ * 5. Insertar items en tabla 'order_items'
+ * 6. Descontar stock de los productos
+ * 
+ * @param {string} branchId - ID de la sucursal
+ * @param {CartItem[]} items - Lista de items del carrito
+ * @param {string} [deliveryTime] - Hora de entrega opcional
+ * @returns {Promise<Order>} El pedido creado
+ */
 export const createOrder = async (
   branchId: string,
   items: CartItem[],
@@ -196,6 +225,12 @@ export const createOrder = async (
 /*         GET USER ORDERS          */
 /* ──────────────────────────────── */
 
+/**
+ * Obtiene el historial de pedidos del usuario actual.
+ * Incluye los detalles de los items y productos relacionados.
+ * 
+ * @returns {Promise<Order[]>} Lista de pedidos ordenada por fecha (más reciente primero)
+ */
 export const getUserOrders = async (): Promise<Order[]> => {
   try {
     const { data, error } = await supabase

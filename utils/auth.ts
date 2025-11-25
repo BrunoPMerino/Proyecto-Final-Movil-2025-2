@@ -8,6 +8,14 @@ export interface AuthError {
 /**
  * Inicia sesión con email y contraseña
  */
+/**
+ * Inicia sesión con email y contraseña.
+ * Realiza validaciones previas de formato y campos requeridos.
+ * 
+ * @param {string} email - Correo electrónico del usuario
+ * @param {string} password - Contraseña
+ * @returns {Promise<{ user: any; error: AuthError | null }>} Objeto con usuario o error
+ */
 export const signIn = async (
   email: string,
   password: string
@@ -74,6 +82,15 @@ export const signIn = async (
 
 /**
  * Registra un nuevo usuario con email y contraseña
+ */
+/**
+ * Registra un nuevo usuario con email y contraseña.
+ * Incluye validaciones de seguridad para la contraseña.
+ * 
+ * @param {string} email - Correo electrónico
+ * @param {string} password - Contraseña (mínimo 6 caracteres)
+ * @param {Object} [metadata] - Datos adicionales del usuario (nombre, apellido)
+ * @returns {Promise<{ user: any; error: AuthError | null }>} Resultado del registro
  */
 export const signUp = async (
   email: string,
@@ -156,6 +173,13 @@ export const signUp = async (
 
 /**
  * Envía un correo para restablecer la contraseña
+ */
+/**
+ * Envía un correo para restablecer la contraseña.
+ * Maneja límites de tasa (rate limiting) y validación de email.
+ * 
+ * @param {string} email - Correo electrónico del usuario
+ * @returns {Promise<{ success: boolean; error: AuthError | null }>} Resultado de la operación
  */
 export const resetPassword = async (
   email: string

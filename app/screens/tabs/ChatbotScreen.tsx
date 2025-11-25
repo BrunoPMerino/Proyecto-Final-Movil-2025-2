@@ -22,13 +22,25 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { supabase } from "../../../utils/supabase";
 
 // Tipos
+/**
+ * Estructura de un mensaje de chat.
+ * @interface ChatMessage
+ */
 interface ChatMessage {
+  /** ID único del mensaje */
   id: string;
+  /** Rol del remitente: 'user' o 'model' (IA) */
   role: "user" | "model";
+  /** Contenido del mensaje */
   content: string;
+  /** Fecha de creación en formato ISO */
   created_at: string;
 }
 
+/**
+ * Estructura de la respuesta de la API de Gemini.
+ * @interface GeminiResponse
+ */
 interface GeminiResponse {
   candidates: {
     content: {
@@ -41,6 +53,18 @@ interface GeminiResponse {
 
 const CACHE_KEY = "chat_history_cache";
 
+/**
+ * Pantalla del Asistente Virtual (Chatbot).
+ * Permite a los usuarios interactuar con una IA potenciada por Gemini
+ * para obtener recomendaciones de productos y ayuda general.
+ * 
+ * Características:
+ * - Persistencia de mensajes en Supabase y AsyncStorage (caché)
+ * - Contexto del menú actualizado en tiempo real
+ * - Renderizado de Markdown para respuestas ricas
+ * 
+ * @component
+ */
 export default function ChatbotScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
@@ -62,6 +86,10 @@ export default function ChatbotScreen() {
     }).start();
   }, []);
 
+  /**
+   * Carga el contexto del menú desde la base de datos para alimentar a la IA.
+   * Formatea los productos en una lista legible para el prompt del sistema.
+   */
   const loadMenuContext = async () => {
     try {
       const products = await getAllProducts();
@@ -79,6 +107,10 @@ export default function ChatbotScreen() {
     }
   };
 
+  /**
+   * Carga el historial de mensajes.
+   * Estrategia: Cache-first para UX inmediata, luego sincronización con Supabase.
+   */
   const loadMessages = async () => {
     try {
       // 1. Cargar de caché primero para velocidad
@@ -107,6 +139,10 @@ export default function ChatbotScreen() {
     }
   };
 
+  /**
+   * Guarda un mensaje en la base de datos de Supabase.
+   * @param {Omit<ChatMessage, "id">} message - El mensaje a guardar (sin ID)
+   */
   const saveMessage = async (message: Omit<ChatMessage, "id">) => {
     try {
       if (!user) return;
@@ -167,6 +203,13 @@ export default function ChatbotScreen() {
     );
   };
 
+  /**
+   * Maneja el envío de mensajes del usuario.
+   * 1. Guarda el mensaje del usuario localmente y en DB
+   * 2. Construye el prompt con el contexto del menú
+   * 3. Llama a la API de Gemini
+   * 4. Procesa y guarda la respuesta de la IA
+   */
   const handleSend = async () => {
     if (!inputText.trim() || isLoading) return;
 

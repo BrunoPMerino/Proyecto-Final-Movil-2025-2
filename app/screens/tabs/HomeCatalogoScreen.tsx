@@ -14,6 +14,10 @@ import SafeAreaContainer from "../../../components/SafeAreaContainer";
 import SearchBar from "../../../components/SearchBar";
 import { useData } from "../../../contexts/DataContext";
 
+/**
+ * Estructura de datos para la información del clima.
+ * @type WeatherData
+ */
 type WeatherData = {
   temperature: number;
   windspeed: number;
@@ -21,6 +25,18 @@ type WeatherData = {
   isDay: boolean;
 };
 
+/**
+ * Pantalla principal del catálogo de productos.
+ * Muestra productos, categorías, clima y permite filtrar/buscar.
+ * 
+ * Funcionalidades:
+ * - Carga de productos y sucursales desde Supabase
+ * - Integración con API de clima (Open-Meteo)
+ * - Filtrado por categoría y búsqueda por texto
+ * - Navegación a detalles de producto
+ * 
+ * @component
+ */
 export default function HomeCatalogoScreen() {
   const router = useRouter();
   const {
@@ -51,6 +67,10 @@ export default function HomeCatalogoScreen() {
   }, []);
 
   // --------- Fetch de clima (Open-Meteo) ----------
+  /**
+   * Obtiene el clima actual para la ubicación de la universidad.
+   * Utiliza la API gratuita de Open-Meteo.
+   */
   useEffect(() => {
     const fetchWeather = async () => {
       try {
@@ -86,6 +106,10 @@ export default function HomeCatalogoScreen() {
   }, []);
 
   // --------- Lógica de productos / filtros ----------
+  /**
+   * Filtra los productos basado en el texto de búsqueda y la categoría activa.
+   * Se ejecuta en cada render cuando cambian los filtros.
+   */
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchText.toLowerCase()) ||

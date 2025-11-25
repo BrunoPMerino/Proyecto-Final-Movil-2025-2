@@ -1,32 +1,50 @@
 import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
 import {
-  addItem as addItemStorage,
-  Cart,
-  CartItem,
-  clearCart as clearCartStorage,
-  getCart as getCartStorage,
-  removeItem as removeItemStorage,
-  updateQuantity as updateQuantityStorage,
+    addItem as addItemStorage,
+    Cart,
+    CartItem,
+    clearCart as clearCartStorage,
+    getCart as getCartStorage,
+    removeItem as removeItemStorage,
+    updateQuantity as updateQuantityStorage,
 } from "../utils/cartStorage";
 
+/**
+ * Definición del contexto del carrito de compras.
+ * @interface CartContextType
+ */
 interface CartContextType {
+  /** Estado actual del carrito (items y total) */
   cart: Cart;
+  /** Agrega un item al carrito o actualiza su cantidad si ya existe */
   addItem: (item: CartItem) => Promise<void>;
+  /** Elimina un item del carrito por su ID */
   removeItem: (productId: string) => Promise<void>;
+  /** Actualiza la cantidad de un producto específico */
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
+  /** Elimina todos los items del carrito */
   clearCart: () => Promise<void>;
+  /** Cantidad total de items en el carrito */
   itemCount: number;
+  /** Estado de carga de las operaciones del carrito */
   loading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+/**
+ * Proveedor del contexto del carrito.
+ * Gestiona el estado local del carrito y su persistencia en AsyncStorage.
+ * 
+ * @component
+ * @param {ReactNode} children - Componentes hijos
+ */
 export const CartProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {

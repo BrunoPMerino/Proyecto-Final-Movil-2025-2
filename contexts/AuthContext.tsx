@@ -3,23 +3,39 @@ import { supabase } from "@/utils/supabase";
 import { clearAllTokens } from "@/utils/tokenStorage";
 import type { User } from "@supabase/supabase-js";
 import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
 
+/**
+ * Definición del contexto de autenticación.
+ * @interface AuthContextType
+ */
 interface AuthContextType {
+  /** Usuario actual o null si no está autenticado */
   user: User | null;
+  /** Booleano que indica si hay una sesión activa */
   isAuthenticated: boolean;
+  /** Estado de carga durante la verificación de sesión */
   isLoading: boolean;
+  /** Función para iniciar sesión con email y contraseña */
   login: (email: string, password: string) => Promise<{ error: string | null }>;
+  /** Función para cerrar sesión y limpiar tokens */
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Proveedor de autenticación que maneja el estado global del usuario.
+ * Utiliza Supabase Auth para la gestión de sesiones y persistencia.
+ * 
+ * @component
+ * @param {ReactNode} children - Componentes hijos que tendrán acceso al contexto
+ */
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
@@ -160,6 +176,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     </AuthContext.Provider>
   );
 };
+
+/**
+ * Hook personalizado para acceder al contexto de autenticación.
+ * Debe usarse dentro de un <AuthProvider>.
+ * 
+ * @returns {AuthContextType} El contexto de autenticación
+ * @throws {Error} Si se usa fuera de un AuthProvider
+ */
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);

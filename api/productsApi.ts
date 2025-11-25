@@ -1,6 +1,13 @@
 import { supabase } from "../utils/supabase";
 import { deleteImage, getPublicUrl, uploadProductImage } from "./storageApi";
 
+/**
+ * Obtiene los productos disponibles para una sucursal específica.
+ * Realiza un join con la tabla product_branches para obtener stock y disponibilidad.
+ * 
+ * @param {string} branchId - ID de la sucursal
+ * @returns {Promise<any[]>} Lista de productos con stock y disponibilidad
+ */
 export const getProducts = async (branchId: string) => {
   const { data, error } = await supabase
     .from("products")
@@ -28,6 +35,12 @@ export const getProducts = async (branchId: string) => {
   }));
 };
 
+/**
+ * Obtiene todos los productos de todas las sucursales.
+ * Útil para el catálogo general.
+ * 
+ * @returns {Promise<any[]>} Lista aplanada de productos por sucursal
+ */
 export const getAllProducts = async () => {
   const { data, error } = await supabase
     .from("products")
