@@ -1,50 +1,83 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# ¡Bienvenido a la aplicación Comida Sabana App! 👋
 
-## Get started
+Este es un proyecto desarrollado con **Expo** utilizando `create-expo-app`.
 
-1. Install dependencies
+La aplicación está enfocada en la gestión de pedidos, consulta de menús y organización logística de alimentos por sucursales dentro de la **Universidad de La Sabana**.
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## 🚀 Cómo comenzar
 
-   ```bash
-   npx expo start
-   ```
+### Instalar dependencias:
 
-In the output, you'll find options to open the app in a
+```bash
+npm install
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Iniciar la aplicación:
 
-## Get a fresh project
 
-When you're ready, run:
+npx expo start
+```
+
+En la terminal encontrarás opciones para abrir la app en:
+
+  * una **development build**
+  * un emulador de **Android**
+  * un simulador de **iOS**
+  * **Expo Go**, para probar la app directamente desde el celular
+
+Puedes empezar a desarrollar editando los archivos dentro del directorio `app`.
+
+> Este proyecto utiliza **file-based routing** mediante `expo-router`.
+
+-----
+
+## 🧹 Reiniciar el proyecto
+
+Si en algún momento deseas limpiar la estructura inicial y empezar desde cero:
 
 ```bash
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Este comando moverá el código de ejemplo a `app-example` y creará un directorio `app` vacío listo para personalizar.
 
-## Learn more
+-----
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🍴 Sobre el proyecto Comida Sabana App
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Nuestra aplicación incluye:
 
-## Join the community
+  * Visualización del **menú de comidas por sucursal**
+  * Organización de productos según la **sede** (Kioskos, Central, Puente del Común, etc.)
+  * Sistema de **pedidos internos** para restaurantes o cafeterías
+  * Integración de **QR** para acceso rápido
+  * **Mapa de sucursales**
+  * **Chatbot** integrado para soporte
+  * **Autenticación**
+  * Lógica y navegación basada en **Expo Router**
 
-Join our community of developers creating universal apps.
+-----
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 📚 Aprende más sobre Expo
+
+Para profundizar en el desarrollo con Expo:
+
+  * [Documentación de Expo](https://docs.expo.dev/)
+  * [Tutorial oficial de Expo](https://docs.expo.dev/tutorial/introduction/)
+
+-----
+
+## 🌐 Únete a la comunidad
+
+Si quieres explorar más sobre el ecosistema Expo:
+
+  * [Expo en GitHub](https://github.com/expo/expo)
+  * [Comunidad en Discord](https://chat.expo.dev/)
+
+<!-- end list -->
+
+```
+```
