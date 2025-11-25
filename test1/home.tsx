@@ -82,7 +82,11 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Header />
 
-      {user && <Text style={styles.welcomeText}>Bienvenido, {user.email}</Text>}
+      {user && (
+        <Text style={styles.welcomeText}>
+          Bienvenido "rama screem test", {user.email}
+        </Text>
+      )}
 
       {error && (
         <View style={styles.errorContainer}>

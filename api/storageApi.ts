@@ -39,11 +39,27 @@ export const uploadProductImage = async (fileUri: string) => {
 
 // 📌 2. Obtener URL pública firmada
 export const getPublicUrl = (imagePath: string) => {
-  const { data } = supabase.storage
-    .from("product-images")
-    .getPublicUrl(imagePath);
+  if (!imagePath) {
+    console.warn("[getPublicUrl] imagePath está vacío");
+    return null;
+  }
 
-  return data.publicUrl;
+  try {
+    const { data } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(imagePath);
+
+    console.log(
+      "[getPublicUrl] URL generada:",
+      data.publicUrl,
+      "para:",
+      imagePath
+    );
+    return data.publicUrl;
+  } catch (error) {
+    console.error("[getPublicUrl] Error al generar URL:", error);
+    return null;
+  }
 };
 
 // 📌 3. Obtener URL pública con transformaciones (resize, optimize)

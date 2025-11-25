@@ -40,7 +40,7 @@ export default function LoginScreen() {
         Alert.alert('Error', loginError);
       } else {
         // Login exitoso - redirigir a la pantalla principal
-        router.replace('/(main)/home');
+        router.replace('/screens/tabs/HomeCatalogoScreen');
       }
     } catch (err: any) {
       const errorMessage = 'Error inesperado. Por favor intenta de nuevo.';

@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useState } from "react";
-import { getAllProducts, getProducts } from "../api/productsApi";
+import { getAllProducts, getCategories, getProducts } from "../api/productsApi";
 import { getPublicUrl } from "../api/storageApi";
 import { supabase } from "../utils/supabase";
 
@@ -8,17 +8,22 @@ interface Product {
   name: string;
   description: string;
   price: number;
-  stock: number;
   image_url: string;
   image_url_public?: string | null;
-  is_available: boolean;
   category_id: string;
-  branch_id: string;
+  // Campos opcionales que vienen de product_branches
+  stock?: number;
+  is_available?: boolean;
+  branch_id?: string;
 }
 
 interface Branch {
   id: string;
   name: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  descriptionbranch?: string;
 }
 
 interface DataContextType {
@@ -30,6 +35,7 @@ interface DataContextType {
   loadProducts: (branchId: string) => Promise<void>;
   loadAllProducts: () => Promise<void>;
   loadBranches: () => Promise<void>;
+  loadCategories: () => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -51,7 +57,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const { data, error: err } = await supabase
         .from("branches")
-        .select("id, name")
+        .select("id, name, address, latitude, longitude, descriptionbranch")
         .limit(10);
 
       if (err) throw err;
@@ -65,6 +71,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  // Cargar todas las categorías
+  const loadCategories = async () => {
+    try {
+      const data = await getCategories();
+      if (data) {
+        setCategories(data);
+      }
+    } catch (err: any) {
+      console.error("Error loading categories:", err);
+    }
+  };
+
   // Cargar productos de una sucursal específica
   const loadProducts = async (branchId: string) => {
     try {
@@ -72,17 +90,28 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       setError(null);
       const data = await getProducts(branchId);
 
-      const normalized = (data || []).map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        stock: item.stock,
-        image_url: item.image_url,
-        is_available: item.is_available,
-        category_id: item.category_id,
-        branch_id: item.branch_id ?? branchId,
-      }));
+      const normalized = (data || []).map((item: any) => {
+        // Si image_url ya es una URL completa, usarla directamente
+        // Si es solo un nombre de archivo, convertir a URL pública
+        const publicUrl = item.image_url
+          ? item.image_url.startsWith("http")
+            ? item.image_url
+            : getPublicUrl(item.image_url)
+          : null;
+
+        return {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          stock: item.stock,
+          image_url: item.image_url,
+          image_url_public: publicUrl,
+          is_available: item.is_available,
+          category_id: item.category_id,
+          branch_id: item.branch_id ?? branchId,
+        };
+      });
 
       setProducts(normalized);
     } catch (err: any) {
@@ -100,20 +129,43 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       setError(null);
       const data = await getAllProducts();
 
-      const normalized = (data || []).map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        stock: item.stock,
-        image_url: item.image_url,
-        image_url_public: item.image_url ? getPublicUrl(item.image_url) : null,
-        is_available: item.is_available,
-        category_id: item.category_id,
-        branch_id: item.branch_id,
-      }));
+      console.log("[DataContext] Productos cargados:", data?.length);
+
+      const normalized = (data || []).map((item: any) => {
+        // Si image_url ya es una URL completa, usarla directamente
+        // Si es solo un nombre de archivo, convertir a URL pública
+        const publicUrl = item.image_url
+          ? item.image_url.startsWith("http")
+            ? item.image_url
+            : getPublicUrl(item.image_url)
+          : null;
+
+        console.log(
+          `[DataContext] Producto: ${
+            item.name
+          }, URL final: ${publicUrl?.substring(0, 80)}...`
+        );
+
+        return {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          stock: item.stock,
+          image_url: item.image_url,
+          image_url_public: publicUrl,
+          is_available: item.is_available,
+          category_id: item.category_id,
+          branch_id: item.branch_id,
+        };
+      });
 
       setProducts(normalized);
+
+      // Cargar sucursales automáticamente
+      if (branches.length === 0) {
+        await loadBranches();
+      }
     } catch (err: any) {
       setError(err.message || "Error al cargar productos");
       console.error("Error loading all products:", err);
@@ -133,6 +185,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         loadProducts,
         loadAllProducts,
         loadBranches,
+        loadCategories,
         loading,
         error,
       }}
