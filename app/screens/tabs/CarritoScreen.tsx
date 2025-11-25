@@ -56,6 +56,7 @@ const CartItemCard = ({
         <Text style={styles.itemName} numberOfLines={2}>
           {name}
         </Text>
+
         <Text style={styles.itemPrice}>${price.toLocaleString()}</Text>
 
         {/* Controles */}
@@ -83,6 +84,7 @@ export default function CarritoScreen() {
   const { cart, removeItem, updateQuantity, clearCart } = useCart();
   const { createOrder, loading } = useOrder();
   const { branches } = useData();
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [deliveryTime, setDeliveryTime] = useState<Date | null>(null);
 
@@ -133,7 +135,7 @@ export default function CarritoScreen() {
 
       Alert.alert(
         "✅ Pedido creado",
-        `Tu pedido ${order.id} ha sido creado correctamente`,
+        "Tu pedido ha sido creado correctamente",
         [
           {
             text: "Ver historial",
@@ -180,13 +182,14 @@ export default function CarritoScreen() {
     });
   };
 
-  // Si quieres mantener el estado vacío parecido al anterior:
+  // Estado vacío
   if (cart.items.length === 0) {
     return (
       <SafeAreaContainer backgroundColor="#f5f5f5">
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Carrito de compras</Text>
         </View>
+
         <View style={styles.emptyContainer}>
           <Ionicons name="cart-outline" size={80} color="#ccc" />
           <Text style={styles.emptyText}>Tu carrito está vacío</Text>
@@ -229,7 +232,9 @@ export default function CarritoScreen() {
 
         <View style={styles.totalBox}>
           <Text style={styles.totalLabel}>Subtotal:</Text>
-          <Text style={styles.totalValue}>${cart.total.toLocaleString()}</Text>
+          <Text style={styles.totalValue}>
+            ${cart.total.toLocaleString()}
+          </Text>
         </View>
 
         <Button
@@ -262,13 +267,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#001E60",
   },
-
   listContent: {
     paddingHorizontal: 12,
     paddingVertical: 12,
-    paddingBottom: 350, // más padding para que no se tape con la navbar
+    paddingBottom: 260, // espacio suficiente para footer
   },
-
   itemCard: {
     backgroundColor: "white",
     borderRadius: 12,
@@ -281,7 +284,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 4,
   },
-
   imageContainer: {
     width: 85,
     height: 85,
@@ -299,11 +301,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#f5f5f5",
   },
-
   itemContent: {
     flex: 1,
   },
-
   itemName: {
     fontSize: 15,
     fontWeight: "700",
@@ -315,14 +315,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 4,
   },
-
   controlsRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 8,
     gap: 10,
   },
-
   quantityButton: {
     width: 28,
     height: 28,
@@ -331,7 +329,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   quantityText: {
     fontSize: 15,
     fontWeight: "700",
@@ -339,27 +336,23 @@ const styles = StyleSheet.create({
     minWidth: 20,
     textAlign: "center",
   },
-
   deleteButton: {
     marginLeft: "auto",
     padding: 4,
   },
-
   footer: {
     backgroundColor: "white",
     padding: 16,
-    paddingBottom: 100, // espacio para que no lo tape la navbar
+    paddingBottom: 120, // hace que el botón no se esconda detrás de la navbar
     borderTopWidth: 1,
     borderTopColor: "#eee",
     gap: 12,
   },
-
   deliveryText: {
     fontSize: 15,
     fontWeight: "600",
     color: "#001E60",
   },
-
   timeBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -370,13 +363,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
-
   timeText: {
     fontSize: 22,
     color: "#001E60",
     fontWeight: "700",
   },
-
   totalBox: {
     backgroundColor: "#001E60",
     paddingVertical: 14,
@@ -385,7 +376,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-
   totalLabel: {
     color: "white",
     fontSize: 16,
@@ -396,7 +386,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
-
   emptyContainer: {
     flex: 1,
     justifyContent: "center",

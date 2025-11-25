@@ -1,9 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import {
-  NavigationProp,
-  useFocusEffect,
-  useNavigation,
-} from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -187,9 +183,7 @@ const OrderItemCard = ({
       {/* Información de precio, estado y hora de entrega */}
       <Text style={styles.infoLine}>
         <Text style={styles.infoLabel}>Precio: </Text>
-        <Text style={styles.infoValue}>
-          ${order.total.toLocaleString()}
-        </Text>
+        <Text style={styles.infoValue}>${order.total.toLocaleString()}</Text>
       </Text>
 
       <Text style={styles.infoLine}>
@@ -212,7 +206,6 @@ const OrderItemCard = ({
 // ---------- Pantalla principal ----------
 
 export default function HistorialScreen() {
-  const navigation = useNavigation<NavigationProp<any>>();
   const { orders, loading, getUserOrders, cancelOrder } = useOrder();
   const { branches } = useData();
   const [refreshing, setRefreshing] = useState(false);
@@ -275,25 +268,10 @@ export default function HistorialScreen() {
   );
 
   return (
-    <SafeAreaContainer backgroundColor="#ffffff">
-      {/* Header estilo Figma */}
+    <SafeAreaContainer backgroundColor="#f5f5f5">
+      {/* Header igual al del carrito */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerIconButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={22} color="#000" />
-        </TouchableOpacity>
-
         <Text style={styles.headerTitle}>Historial de pedidos</Text>
-
-        <View style={styles.headerRight}>
-          <Ionicons
-            name="person-circle-outline"
-            size={26}
-            color="#001E60"
-          />
-        </View>
       </View>
 
       {loading && orders.length === 0 ? (
@@ -304,6 +282,7 @@ export default function HistorialScreen() {
         renderEmpty()
       ) : (
         <FlatList<ListItem>
+          style={styles.list}
           data={[
             { type: "section", title: "En curso" },
             ...inProgressOrders.map(
@@ -386,41 +365,33 @@ export default function HistorialScreen() {
 // ---------- Estilos ----------
 
 const styles = StyleSheet.create({
+  // Header igual al del carrito
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
     backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  headerIconButton: {
-    width: 32,
-    justifyContent: "center",
-    alignItems: "flex-start",
   },
   headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "700",
-    color: "#000",
+    color: "#001E60",
   },
-  headerRight: {
-    width: 32,
-    alignItems: "flex-end",
+
+  list: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
+  // 👇 paddingBottom grande para que puedas scrollear por encima de la bottom-tab
   listContent: {
     paddingHorizontal: 12,
     paddingVertical: 12,
-    paddingBottom: 32,
+    paddingBottom: 120,
   },
+
   sectionHeaderPrimary: {
     paddingHorizontal: 4,
     marginTop: 8,
@@ -449,15 +420,19 @@ const styles = StyleSheet.create({
   orderWrapper: {
     marginBottom: 12,
   },
+
+  // Cards
   orderCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 6,
+    borderRadius: 12,
     padding: 12,
     borderWidth: 1,
     borderColor: "#d4d4d4",
   },
+  // FINALIZADOS EN GRIS MARCADO
   orderCardCompleted: {
     backgroundColor: "#f3f3f3",
+    borderColor: "#c8c8c8",
   },
 
   // En curso

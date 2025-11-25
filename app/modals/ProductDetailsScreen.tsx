@@ -11,9 +11,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Button from "../../../components/Button";
-import { useCart } from "../../../contexts/CartContext";
-import { useData } from "../../../contexts/DataContext";
+import Button from "../../components/Button";
+import { useCart } from "../../contexts/CartContext";
+import { useData } from "../../contexts/DataContext";
 
 export default function ProductDetailsScreen() {
   const router = useRouter();
