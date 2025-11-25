@@ -1,20 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import SafeAreaContainer from "../../components/SafeAreaContainer";
-import CameraModal from "../modals/CameraModal"; // ⬅️ importa el modal de cámara
+import CameraModal from "../modals/CameraModal";
 
 export default function QRRoomScreen() {
   const router = useRouter();
-
-  // controla la visibilidad del modal
-  const [cameraVisible, setCameraVisible] = useState(false);
-  // guarda el último QR leído
-  const [lastQrData, setLastQrData] = useState<string | null>(null);
+  const [isCameraVisible, setCameraVisible] = useState(false);
+  const [lastCode, setLastCode] = useState<string | null>(null);
 
   const handleOpenCamera = () => {
-    setLastQrData(null);        // opcional: limpiar último valor
+    setLastCode(null);
     setCameraVisible(true);
   };
 
@@ -22,15 +24,67 @@ export default function QRRoomScreen() {
     setCameraVisible(false);
   };
 
-  const handleQrConfirm = (qrData: string) => {
-    // aquí recibes la info del código QR
-    console.log("QR escaneado:", qrData);
-    setLastQrData(qrData);
+  const handleCodeScanned = (data: string) => {
+    console.log("[QRRoom] raw data =>", data);
 
-    // si quieres, podrías navegar según el código:
-    // router.push(`/screens/rooms/${qrData}`);
+    try {
+      let raw = data.trim();
 
-    setCameraVisible(false);
+      // Si llega una URL con ?data=... / ?text=... / ?q=...
+      if (raw.startsWith("http://") || raw.startsWith("https://")) {
+        try {
+          const url = new URL(raw);
+          const param =
+            url.searchParams.get("data") ||
+            url.searchParams.get("text") ||
+            url.searchParams.get("q");
+
+          if (param) {
+            raw = decodeURIComponent(param);
+            console.log("[QRRoom] extraído de URL =>", raw);
+          }
+        } catch (e) {
+          console.log("[QRRoom] error parseando URL:", e);
+        }
+      }
+
+      // Quitar comillas envolventes si las hay
+      if (
+        (raw.startsWith('"') && raw.endsWith('"')) ||
+        (raw.startsWith("'") && raw.endsWith("'"))
+      ) {
+        raw = raw.slice(1, -1);
+      }
+
+      // Reemplazar \" por "
+      raw = raw.replace(/\\"/g, '"');
+      console.log("[QRRoom] cleaned raw =>", raw);
+
+      const parsed = JSON.parse(raw);
+
+      if (parsed.type === "branch" && typeof parsed.branchId === "string") {
+        const branchId = parsed.branchId;
+        console.log("[QRRoom] branchId leído:", branchId);
+
+        setLastCode(`Sucursal seleccionada: ${branchId}`);
+
+        // 👇 CERRAR el modal de cámara
+        setCameraVisible(false);
+
+        // 👇 Navegar al Home, pasando el branchId como parámetro
+        router.push({
+          pathname: "/screens/tabs/HomeCatalogoScreen",
+          params: { branchId },
+        });
+
+        return;
+      }
+
+      setLastCode("Formato de QR incorrecto (falta type=branch o branchId).");
+    } catch (err) {
+      console.log("[QRRoom] error parseando QR:", err);
+      setLastCode("Formato de QR incorrecto.");
+    }
   };
 
   return (
@@ -47,7 +101,7 @@ export default function QRRoomScreen() {
         <Ionicons name="qr-code-outline" size={120} color="#001E60" />
         <Text style={styles.subtitle}>Escanea un código QR</Text>
         <Text style={styles.description}>
-          Apunta la cámara a un código QR para acceder a la sala
+          Apunta la cámara a un código QR para seleccionar una sucursal.
         </Text>
 
         <TouchableOpacity style={styles.button} onPress={handleOpenCamera}>
@@ -55,20 +109,18 @@ export default function QRRoomScreen() {
           <Text style={styles.buttonText}>Abrir Cámara</Text>
         </TouchableOpacity>
 
-        {/* Mostrar el último QR leído (opcional, útil para debug) */}
-        {lastQrData && (
-          <View style={styles.qrInfoBox}>
-            <Text style={styles.qrInfoTitle}>Último QR escaneado:</Text>
-            <Text style={styles.qrInfoText}>{lastQrData}</Text>
+        {lastCode && (
+          <View style={styles.resultBox}>
+            <Text style={styles.resultText}>{lastCode}</Text>
           </View>
         )}
       </View>
 
-      {/* Modal de cámara para escanear solo QR */}
+      {/* Modal de cámara para leer el QR */}
       <CameraModal
-        isVisible={cameraVisible}
+        isVisible={isCameraVisible}
         onClose={handleCloseCamera}
-        onConfirm={handleQrConfirm}
+        onConfirm={handleCodeScanned}
       />
     </SafeAreaContainer>
   );
@@ -123,21 +175,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  qrInfoBox: {
+  resultBox: {
     marginTop: 24,
-    padding: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: "#eef3ff",
-    width: "100%",
+    backgroundColor: "#eef2ff",
   },
-  qrInfoTitle: {
-    fontSize: 14,
-    fontWeight: "700",
+  resultText: {
     color: "#001E60",
-    marginBottom: 4,
-  },
-  qrInfoText: {
-    fontSize: 13,
-    color: "#333",
+    fontSize: 14,
+    fontWeight: "500",
+    textAlign: "center",
   },
 });

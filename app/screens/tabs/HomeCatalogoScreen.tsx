@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
   Text,
-  View
+  View,
 } from "react-native";
 import BranchProductsView from "../../../components/BranchProductsView";
 import FilterBar from "../../../components/FilterBar";
@@ -16,14 +16,16 @@ import { useData } from "../../../contexts/DataContext";
 
 export default function HomeCatalogoScreen() {
   const router = useRouter();
+  const { branchId } = useLocalSearchParams<{ branchId?: string }>();
+
   const { products, branches, loadAllProducts, loadBranches, loading, error } =
     useData();
+
   const [refreshing, setRefreshing] = React.useState(false);
   const [searchText, setSearchText] = useState("");
-  // mantenemos el estado por compatibilidad con FilterBar,
-  // pero la app siempre mostrará la vista por sucursales
   const [viewMode, setViewMode] = useState<"grid" | "branches">("branches");
   const [activeFilter, setActiveFilter] = useState("todos");
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
 
   // Cargar productos y sucursales al montar
   useEffect(() => {
@@ -31,8 +33,40 @@ export default function HomeCatalogoScreen() {
     loadBranches();
   }, []);
 
-  // Filtrar productos según búsqueda y filtro
-  const filteredProducts = products.filter((product) => {
+  // Si venimos desde el QR con un branchId, lo guardamos
+  useEffect(() => {
+    if (typeof branchId === "string") {
+      setSelectedBranchId(branchId);
+    }
+  }, [branchId]);
+
+  // ---------- Helpers ----------
+
+  // Mapa id -> nombre de categoría para que el filtro no muestre IDs raros
+  const categoryMap = new Map<string, string>();
+  products.forEach((p: any) => {
+    if (!p.category_id) return;
+    const label =
+      p.category_name ||            // si tu DataContext lo trae así
+      p.category?.name ||           // si viene anidado en category
+      String(p.category_id);        // fallback (último recurso)
+
+    if (!categoryMap.has(p.category_id)) {
+      categoryMap.set(p.category_id, label);
+    }
+  });
+
+  // Crear opciones de filtro desde categorías
+  const filterOptions = [
+    { id: "todos", label: "Todos" },
+    ...Array.from(categoryMap.entries()).map(([id, label]) => ({
+      id,
+      label,
+    })),
+  ];
+
+  // Filtrar productos según búsqueda, filtro y sucursal
+  const filteredProducts = products.filter((product: any) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchText.toLowerCase()) ||
       product.description.toLowerCase().includes(searchText.toLowerCase());
@@ -40,21 +74,11 @@ export default function HomeCatalogoScreen() {
     const matchesFilter =
       activeFilter === "todos" || product.category_id === activeFilter;
 
-    return matchesSearch && matchesFilter;
-  });
+    const matchesBranch =
+      !selectedBranchId || product.branch_id === selectedBranchId;
 
-  // Crear opciones de filtro desde categorías
-  const filterOptions = [
-    { id: "todos", label: "Todos" },
-    ...Array.from(
-      new Map(
-        products.map((p) => [
-          p.category_id,
-          { id: p.category_id, label: p.category_id },
-        ])
-      ).values()
-    ),
-  ];
+    return matchesSearch && matchesFilter && matchesBranch;
+  });
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -74,12 +98,12 @@ export default function HomeCatalogoScreen() {
 
   return (
     <SafeAreaContainer backgroundColor="#ffffff">
-      {/* Header azul con logo y título, como en el Figma */}
+      {/* Header (menos padding para que se vea más contenido) */}
       <View style={styles.header}>
         <Header />
       </View>
 
-      {/* Barra de búsqueda: opcional pero alineada al estilo limpio */}
+      {/* Barra de búsqueda */}
       <View style={styles.searchContainer}>
         <SearchBar
           placeholder="Buscar productos..."
@@ -88,17 +112,16 @@ export default function HomeCatalogoScreen() {
         />
       </View>
 
-      {/* Título "Filtros" como en el diseño */}
+      {/* Título "Filtros" */}
       <Text style={styles.filterTitle}>Filtros</Text>
 
-      {/* Chips de filtro horizontales */}
+      {/* Chips de filtro horizontales (con nombres bonitos) */}
       <FilterBar
         filters={filterOptions}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        // ocultamos las opciones de cambiar entre grid / lista
         showViewOptions={false}
       />
 
@@ -120,7 +143,7 @@ export default function HomeCatalogoScreen() {
           <Text style={styles.emptyText}>No hay productos disponibles</Text>
         </View>
       ) : (
-        // Vista por sucursales, como en la pantalla de Figma
+        // Vista por sucursales: si viene branchId del QR solo se verá esa
         <BranchProductsView
           products={filteredProducts}
           branches={branches}
@@ -136,7 +159,7 @@ export default function HomeCatalogoScreen() {
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 6, // 🔹 antes era 12, ahora menos padding
     backgroundColor: "white",
   },
   searchContainer: {
@@ -190,15 +213,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#999",
     marginTop: 12,
-  },
-  scrollContent: {
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-    paddingBottom: 80,
-  },
-  columnWrapper: {
-    justifyContent: "space-between",
-    marginBottom: 12,
-    paddingHorizontal: 8,
   },
 });
